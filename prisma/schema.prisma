@@ -1,0 +1,257 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model User {
+  id                  Int       @id @default(autoincrement())
+  name                String?
+  email               String    @unique
+  emailVerified       DateTime?
+  password            String? // Optional because OAuth users don't have a password
+  role                Role      @default(user)
+  resetToken          String?   @unique
+  resetTokenExpiry    DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  failedLoginAttempts Int       @default(0)
+  lockoutUntil        DateTime?
+  currentSessionId    String?
+
+  // Relations
+  image        ProfileImage?
+  personalInfo PersonalInformation?
+  techStacks   TechStack[]
+  socialLinks  SocialLink[]
+  projects     Project[]
+
+  @@map("users")
+}
+
+model ProfileImage {
+  id     Int     @id @default(autoincrement())
+  tiny   String
+  medium String
+  raw    String
+  userId            Int      @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("profile_image")
+}
+
+// User relations
+model PersonalInformation {
+  id                Int      @id @default(autoincrement())
+  professionalTitle String?
+  bio               String?
+  experience        Int?
+  focus             String?
+  languages         String?
+  coverImage        String?
+  userId            Int      @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("personal_informations")
+}
+
+// User relations
+model TechStack {
+  id        Int           @id @default(autoincrement())
+  name      String
+  category  CategoryStack @default(frontend)
+  userId    Int
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("tech_stacks")
+}
+
+// User relations
+model SocialLink {
+  id        Int            @id @default(autoincrement())
+  name      String
+  url       String
+  icon      String
+  type      SocialLinkType @default(github)
+  userId    Int
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("social_links")
+}
+
+model Settings {
+  id        Int      @id @default(autoincrement())
+  theme     Theme    @default(light)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// For Lexical package
+model LegalMentions {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("legal_mentions")
+}
+
+// For Lexical package
+model CGU {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cgu")
+}
+
+// For Lexical package
+model PrivacyPolicy {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("privacy_policy")
+}
+
+// For Lexical package
+model CookiePolicy {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cookie_policy")
+}
+
+model Project {
+  id              Int             @id @default(autoincrement())
+  slug            String          @unique
+  title           String
+  description     String
+  category        ProjectCategory @default(web)
+  categoryLabel   String
+  caseStudyNumber String?
+  techIcons       String[]
+  techStack       Json            // Array of { name: string, icon: string }
+  features        Json            // Array of { icon: string, title: string, description: string }
+  isFeatured      Boolean         @default(false)
+  userId          Int
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  image           ProjectImage?
+  status          ProjectStatus   @default(draft)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("projects")
+}
+
+model ProjectImage {
+  id        Int      @id @default(autoincrement())
+  medium    Json
+  raw       Json
+  projectId Int      @unique
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("project_image")
+}
+
+enum Role {
+  admin
+  developer
+  moderator
+  guest
+  user
+}
+
+enum Theme {
+  dark
+  forest
+  light
+  ocean
+  desert
+  guardian
+  aegis
+}
+
+enum CategoryStack {
+  frontend
+  backend
+  devops
+  cloud
+  testing
+  mobile
+}
+
+enum SocialLinkType {
+  github
+  linkedin
+  upwork
+  malt
+  email
+}
+
+enum ProjectCategory {
+  web
+  mobile
+  open_source
+}
+
+enum ProjectStatus {
+  draft
+  published
+  unpublished
+  archived
+}
+
+model GlobalSearchIndex {
+  id        Int      @id @default(autoincrement())
+  itemId    Int
+  itemType  String
+  content   String
+  category  String?
+  embedding Unsupported("vector(384)")?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([itemId, itemType])
+  @@index([embedding], map: "global_search_embedding_idx")
+  @@map("global_search_indices")
+}
+
+model Message {
+  id             Int      @id @default(autoincrement())
+  fullName       String
+  email          String
+  serviceType    Json     // Store the selected service object
+  priceRangeType Json     // Store the selected price range object
+  projectBrief   String
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("messages")
+}
