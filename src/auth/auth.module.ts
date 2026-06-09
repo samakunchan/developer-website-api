@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { WebAuthController } from './web-auth.controller';
+import { ApiAuthController } from './api-auth.controller';
+import { WebAuthService } from './web-auth.service';
+import { ApiAuthService } from './api-auth.service';
+import { WebAuthGuard } from './web-auth.guard';
+import { ApiAuthGuard } from './api-auth.guard';
 import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [EmailModule],
-  controllers: [AuthController],
-  providers: [AuthService, AuthGuard],
-  exports: [AuthService, AuthGuard],
+  controllers: [WebAuthController, ApiAuthController],
+  providers: [WebAuthService, ApiAuthService, WebAuthGuard, ApiAuthGuard],
+  exports: [WebAuthService, ApiAuthService, WebAuthGuard, ApiAuthGuard],
 })
 export class AuthModule {}
