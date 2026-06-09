@@ -27,7 +27,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (typeof responseContent === 'object' && responseContent !== null) {
         // If it's the class-validator default array error response, extract it cleanly
         const message = (responseContent as any).error;
-        exceptionName = Array.isArray(message) ? message.join(', ') : String(message);
+        exceptionName = Array.isArray(message)
+          ? message.join(', ')
+          : String(message);
       } else {
         exceptionName = String(responseContent);
       }
@@ -38,7 +40,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (exception.message.includes('this.prisma.user.findUnique()')) {
         customMessage = 'UserNotFoundException';
       }
-      exceptionName = customMessage || exception.name || exception.constructor.name;
+      exceptionName =
+        customMessage || exception.name || exception.constructor.name;
       stack = exception.stack || '';
     } else {
       exceptionName = String(exception);
@@ -46,9 +49,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Append to api_error_logs.txt
     if (stack) {
-      const logMessage = `[${new Date().toISOString()}] ${request.method} ${request.url}\n${stack}\n\n`;
+      const logMessage = `[${new Date().toISOString()}] ${request.method} ${
+        request.url
+      }\n${stack}\n\n`;
       try {
-        fs.appendFileSync(path.join(process.cwd(), 'api_error_logs.txt'), logMessage);
+        fs.appendFileSync(
+          path.join(process.cwd(), 'api_error_logs.txt'),
+          logMessage,
+        );
       } catch (err) {
         console.error('Failed to write exception to log file', err);
       }

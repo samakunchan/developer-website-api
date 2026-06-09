@@ -8,7 +8,9 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'Password is required' })
   password: string;
 
-  @MinLength(8, { message: 'Confirm password must be at least 8 characters long' })
+  @MinLength(8, {
+    message: 'Confirm password must be at least 8 characters long',
+  })
   @IsNotEmpty({ message: 'Confirm password is required' })
   confirmPassword: string;
 }
