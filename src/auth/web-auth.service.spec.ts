@@ -21,14 +21,13 @@ jest.mock('jose', () => ({
   }),
 }));
 
-import { AuthService } from './auth.service';
+import { WebAuthService } from './web-auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 
-describe('AuthService', () => {
-  let service: AuthService;
+describe('WebAuthService', () => {
+  let service: WebAuthService;
   let prisma: PrismaService;
-  let emailService: EmailService;
 
   const mockUser = {
     id: 1,
@@ -49,7 +48,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AuthService,
+        WebAuthService,
         {
           provide: PrismaService,
           useValue: {
@@ -68,9 +67,8 @@ describe('AuthService', () => {
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    service = module.get<WebAuthService>(WebAuthService);
     prisma = module.get<PrismaService>(PrismaService);
-    emailService = module.get<EmailService>(EmailService);
   });
 
   it('should be defined', () => {
@@ -99,7 +97,9 @@ describe('AuthService', () => {
     });
 
     it('should authenticate successfully with correct password', async () => {
-      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => Promise.resolve(true));
+      jest
+        .spyOn(bcrypt, 'compare')
+        .mockImplementationOnce(() => Promise.resolve(true));
 
       const result = await service.signIn({
         email: 'test@test.com',

@@ -22,6 +22,7 @@ model User {
   failedLoginAttempts Int       @default(0)
   lockoutUntil        DateTime?
   currentSessionId    String?
+  currentApiSessionId String?
 
   // Relations
   image        ProfileImage?

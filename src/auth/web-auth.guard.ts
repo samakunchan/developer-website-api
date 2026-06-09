@@ -1,13 +1,18 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { WebAuthService } from './web-auth.service';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+export class WebAuthGuard implements CanActivate {
+  constructor(private readonly webAuthService: WebAuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    
+
     // 1. Try to read token from cookies
     let token = request.cookies?.['auth_session'];
 
@@ -23,7 +28,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('No authentication session token found');
     }
 
-    const user = await this.authService.verifySession(token);
+    const user = await this.webAuthService.verifySession(token);
     if (!user) {
       throw new UnauthorizedException('Session is invalid or expired');
     }
