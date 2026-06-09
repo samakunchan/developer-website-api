@@ -19,6 +19,10 @@
 - Refactored legacy authentication into Web Auth (`/auth/web`) and API Auth (`/auth/api`) to separate stateful cookie sessions from stateless token-based sessions.
 - Synced the shared PostgreSQL database schemas in both workspaces and regenerated local Prisma client bindings.
 
+### Fixed
+
+- N/A
+
 ## 🚀 0.1.0 - 08/06/2026
 
 ### Added
