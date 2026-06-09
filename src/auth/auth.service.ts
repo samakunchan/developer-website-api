@@ -16,7 +16,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   private getJwtSecret(): Uint8Array {
     return new TextEncoder().encode(
@@ -70,7 +70,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const sessionId = crypto.randomUUID();
+    const sessionId: string = crypto.randomUUID();
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -82,13 +82,13 @@ export class AuthService {
     });
 
     // Create session token matching developer-website signing flow
-    const token = await new jose.SignJWT({
+    const token: string = await new jose.SignJWT({
       sub: String(user.id),
       email: user.email,
       role: user.role,
       name: user.name,
       sessionId,
-    })
+    } as any)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('24h')
