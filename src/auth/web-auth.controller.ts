@@ -1,14 +1,24 @@
-import { Controller, Post, Get, Body, Req, Res, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Req,
+  Res,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
-import { AuthService } from './auth.service';
+import { WebAuthService } from './web-auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { AuthGuard } from './auth.guard';
+import { WebAuthGuard } from './web-auth.guard';
 
-@Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+@Controller('auth/web')
+export class WebAuthController {
+  constructor(private readonly webAuthService: WebAuthService) {}
 
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
@@ -16,11 +26,13 @@ export class AuthController {
     @Body() body: SignInDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.signIn(body);
-    
+    const result = await this.webAuthService.signIn(body);
+
     res.cookie('auth_session', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' && process.env.SECURE_COOKIES !== 'false',
+      secure:
+        process.env.NODE_ENV === 'production' &&
+        process.env.SECURE_COOKIES !== 'false',
       sameSite: 'lax',
       path: '/',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
@@ -30,14 +42,14 @@ export class AuthController {
   }
 
   @Post('sign-out')
-  @UseGuards(AuthGuard)
+  @UseGuards(WebAuthGuard)
   @HttpCode(HttpStatus.OK)
   async signOut(
     @Req() req: Request & { user: { id: number } },
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.authService.signOut(req.user.id);
-    
+    await this.webAuthService.signOut(req.user.id);
+
     res.clearCookie('auth_session', {
       path: '/',
     });
@@ -46,7 +58,7 @@ export class AuthController {
   }
 
   @Get('session')
-  @UseGuards(AuthGuard)
+  @UseGuards(WebAuthGuard)
   async session(@Req() req: Request & { user: any }) {
     return { user: req.user };
   }
@@ -54,12 +66,12 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() body: ForgotPasswordDto) {
-    return await this.authService.forgotPassword(body);
+    return await this.webAuthService.forgotPassword(body);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() body: ResetPasswordDto) {
-    return await this.authService.resetPassword(body);
+    return await this.webAuthService.resetPassword(body);
   }
 }

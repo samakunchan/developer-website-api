@@ -20,12 +20,12 @@ jest.mock('jose', () => ({
   }),
 }));
 
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { WebAuthController } from './web-auth.controller';
+import { WebAuthService } from './web-auth.service';
 
-describe('AuthController', () => {
-  let controller: AuthController;
-  let service: AuthService;
+describe('WebAuthController', () => {
+  let controller: WebAuthController;
+  let service: WebAuthService;
 
   const mockUser = {
     id: 1,
@@ -36,12 +36,14 @@ describe('AuthController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
+      controllers: [WebAuthController],
       providers: [
         {
-          provide: AuthService,
+          provide: WebAuthService,
           useValue: {
-            signIn: jest.fn().mockResolvedValue({ token: 'signed-token', user: mockUser }),
+            signIn: jest
+              .fn()
+              .mockResolvedValue({ token: 'signed-token', user: mockUser }),
             signOut: jest.fn().mockResolvedValue({ success: true }),
             verifySession: jest.fn().mockResolvedValue(mockUser),
             forgotPassword: jest.fn().mockResolvedValue({ success: true }),
@@ -51,8 +53,8 @@ describe('AuthController', () => {
       ],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
-    service = module.get<AuthService>(AuthService);
+    controller = module.get<WebAuthController>(WebAuthController);
+    service = module.get<WebAuthService>(WebAuthService);
   });
 
   it('should be defined', () => {
@@ -69,7 +71,11 @@ describe('AuthController', () => {
       const result = await controller.signIn(body, res);
 
       expect(service.signIn).toHaveBeenCalledWith(body);
-      expect(res.cookie).toHaveBeenCalledWith('auth_session', 'signed-token', expect.any(Object));
+      expect(res.cookie).toHaveBeenCalledWith(
+        'auth_session',
+        'signed-token',
+        expect.any(Object),
+      );
       expect(result).toEqual({ success: true, user: mockUser });
     });
   });

@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcryptjs';
@@ -12,7 +16,7 @@ const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
 
 @Injectable()
-export class AuthService {
+export class WebAuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
@@ -20,7 +24,8 @@ export class AuthService {
 
   private getJwtSecret(): Uint8Array {
     return new TextEncoder().encode(
-      process.env.SESSION_SECRET || 'a-very-long-and-secure-secret-key-for-development-only',
+      process.env.SESSION_SECRET ||
+        'a-very-long-and-secure-secret-key-for-development-only',
     );
   }
 
@@ -31,10 +36,17 @@ export class AuthService {
     if (process.env.APP_URL_PROD) {
       return process.env.APP_URL_PROD;
     }
-    return process.env.APP_URL_DEV || process.env.APP_URL || `http://localhost:${process.env.APP_PORT || 3000}`;
+    return (
+      process.env.APP_URL_DEV ||
+      process.env.APP_URL ||
+      `http://localhost:${process.env.APP_PORT || 3000}`
+    );
   }
 
-  async signIn(data: SignInDto): Promise<{ token: string; user: { id: number; email: string; name: string | null; role: string } }> {
+  async signIn(data: SignInDto): Promise<{
+    token: string;
+    user: { id: number; email: string; name: string | null; role: string };
+  }> {
     const user = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -45,8 +57,12 @@ export class AuthService {
 
     // Check for lockout
     if (user.lockoutUntil && user.lockoutUntil > new Date()) {
-      const diff = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / (1000 * 60));
-      throw new BadRequestException(`Account is temporarily locked. Try again in ${diff} minutes.`);
+      const diff = Math.ceil(
+        (user.lockoutUntil.getTime() - Date.now()) / (1000 * 60),
+      );
+      throw new BadRequestException(
+        `Account is temporarily locked. Try again in ${diff} minutes.`,
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
@@ -59,18 +75,22 @@ export class AuthService {
         where: { id: user.id },
         data: {
           failedLoginAttempts: newFailedAttempts,
-          lockoutUntil: isLockingOut ? new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000) : null,
+          lockoutUntil: isLockingOut
+            ? new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000)
+            : null,
         },
       });
 
       if (isLockingOut) {
-        throw new BadRequestException(`Too many failed attempts. Account locked for ${LOCKOUT_DURATION_MINUTES} minutes.`);
+        throw new BadRequestException(
+          `Too many failed attempts. Account locked for ${LOCKOUT_DURATION_MINUTES} minutes.`,
+        );
       }
 
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const sessionId = crypto.randomUUID();
+    const sessionId: string = crypto.randomUUID();
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -82,13 +102,13 @@ export class AuthService {
     });
 
     // Create session token matching developer-website signing flow
-    const token = await new jose.SignJWT({
+    const token: string = await new jose.SignJWT({
       sub: String(user.id),
       email: user.email,
       role: user.role,
       name: user.name,
       sessionId,
-    })
+    } as any)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('24h')
@@ -113,7 +133,12 @@ export class AuthService {
     return { success: true };
   }
 
-  async verifySession(token: string): Promise<{ id: number; email: string; name: string | null; role: string } | null> {
+  async verifySession(token: string): Promise<{
+    id: number;
+    email: string;
+    name: string | null;
+    role: string;
+  } | null> {
     try {
       const { payload } = await jose.jwtVerify(token, this.getJwtSecret());
       if (!payload || !payload.sessionId || !payload.sub) {
@@ -127,7 +152,13 @@ export class AuthService {
 
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, name: true, role: true, currentSessionId: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          currentSessionId: true,
+        },
       });
 
       if (!user || user.currentSessionId !== payload.sessionId) {
