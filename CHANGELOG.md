@@ -1,4 +1,37 @@
 # CHANGELOG developer-website-api
+<!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
+
+## 🚀 0.4.0 - 10/06/2026
+
+### Added
+
+- **Profiles Feature Module**:
+  - Implemented `ProfilesModule`, `ProfilesController`, and `ProfilesService` with custom input validation DTOs.
+  - Added public presentation endpoint `GET /profiles/presentation` (no authentication required).
+  - Added protected endpoints guarded by `ApiAuthGuard`:
+    - `GET /profiles`: Retrieve user profile.
+    - `PUT /profiles/personal-info`: Update user name and upsert personal information (bio, title, company, etc.).
+    - `POST /profiles/tech-stack` / `DELETE /profiles/tech-stack/:id`: Add and remove developer technologies.
+    - `POST /profiles/social-link` / `DELETE /profiles/social-link/:id`: Add and remove social media links.
+    - `POST /profiles/avatar`: Upload a profile picture, validate size (max 2MB) and type (JPEG, PNG, WebP), resize to three resolutions (`tiny`, `medium`, and `raw` in WebP format) using `sharp`, store in a local `uploads/me` directory, and update database image URLs.
+- **Global Assets Serving**:
+  - Configured static file serving in [main.ts](file:///Users/samakunchan/Desktop/developpement/trainings/tanstack-projects/developer-website-api/src/main.ts) to serve files in the local root `uploads` folder under the `/uploads` prefix.
+- **Postman API Documentation**:
+  - Created a new **`Profiles`** folder in the Postman collection `91b54467-cc58-43ec-8b9b-d9a7c22e34cd` with all 8 endpoints configured.
+  - Pre-configured the `Update Avatar` request with `multipart/form-data` and a `file` type parameter for ease of testing.
+
+### Changed
+
+- **Clean Dynamic DATABASE_URL Construction**:
+  - Reverted raw string replacement of localhost URLs inside `bao.utils.ts` and removed the mapped env variable from `compose-dev.yml`.
+  - Added clean dynamic construction of `DATABASE_URL` directly inside [bao.utils.ts](file:///Users/samakunchan/Desktop/developpement/trainings/tanstack-projects/developer-website-api/src/common/utils/bao.utils.ts) using individual Postgres secrets loaded from OpenBao, resolving connection issues inside Docker and local environments without host env dependencies.
+- **Docker dev Environment Rebuild**:
+  - Modified the development stage in `Dockerfile` to install the `procps` package to resolve hotreload process monitoring compilation crashes.
+  - Modified dev start/stop helper scripts (`docker-build-dev.sh`, `stop-app.sh`, `env-bao.sh`) to support safe volume flushing (`down -v`) to avoid Multer/Sharp dependency caching conflicts, and corrected syntax to be POSIX compliant.
+
+### Fixed
+
+- N/A
 
 ## 🚀 0.3.0 - 10/06/2026
 
