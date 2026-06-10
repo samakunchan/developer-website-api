@@ -49,7 +49,7 @@ LOGIN_RES=$(curl -s -X POST -H "Content-Type: application/json" \
 
 TOKEN=$(echo $LOGIN_RES | jq -r .auth.client_token)
 
-if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
   echo "❌ Error: Failed to login to OpenBao."
   return 1 2>/dev/null || exit 1
 fi
@@ -62,6 +62,8 @@ eval $(echo $SECRETS_JSON | jq -r '.data.data | to_entries | .[] | "export \(.ke
 # 3. Construct DATABASE_URL
 if [ "$DOCKER" = "true" ]; then
     export DATABASE_URL="postgresql://${POSTGRES_USER_ENCODED}:${POSTGRES_PASSWORD}@postgresdb:5432/${POSTGRES_DB}?schema=public"
+elif [ "$ENV" = "dev" ]; then
+    export DATABASE_URL="postgresql://${POSTGRES_USER_ENCODED}:${POSTGRES_PASSWORD}@localhost:5435/${POSTGRES_DB}?schema=public"
 else
     PORT=$([ "$ENV" = "prod" ] || [ "$ENV" = "stage" ] && echo "5436" || echo "5435")
     export DATABASE_URL="postgresql://${POSTGRES_USER_ENCODED}:${POSTGRES_PASSWORD}@localhost:${PORT}/${POSTGRES_DB}?schema=public"
