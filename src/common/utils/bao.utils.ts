@@ -90,6 +90,8 @@ export async function loadSecrets() {
       process.env[key] = finalValue;
     });
 
+    process.env.DATABASE_URL = `postgresql://${process.env.POSTGRES_USER_ENCODED}:${process.env.POSTGRES_PASSWORD}@postgresdb:5432/${process.env.POSTGRES_DB}?schema=public`;
+
     console.log(
       `✅ OpenBao: Successfully loaded ${Object.keys(secrets).length} secrets.`,
     );

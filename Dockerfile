@@ -14,7 +14,7 @@ RUN yarn install --frozen-lockfile
 # Stage 2: Development environment
 FROM node:22-slim AS dev
 WORKDIR /app
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl procps && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
