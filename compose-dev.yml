@@ -1,0 +1,34 @@
+services:
+  api:
+    container_name: developer-website-api-dev
+    build:
+      target: dev
+    ports:
+      - '3002:3002'
+    environment:
+      - NODE_ENV=development
+      - DOCKER=true
+      - BAO_ADDR=http://host.docker.internal:8200
+      - BAO_ROLE_ID=${BAO_ROLE_ID}
+      - BAO_SECRET_ID=${BAO_SECRET_ID}
+      - BAO_PATH=${BAO_PATH}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_USER_ENCODED=${POSTGRES_USER_ENCODED}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT_INTERNAL=${POSTGRES_PORT_INTERNAL}
+      - PORT=3002
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - developer-website-network
+    external_links:
+      - developer-website-db:postgresdb
+
+networks:
+  developer-website-network:
+    name: developer-website-dev_default
+    external: true

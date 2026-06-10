@@ -1,6 +1,6 @@
 {
   "name": "developer-website-api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "NestJS API for developer-website running with OpenBao and PostgreSQL",
   "author": "Samakunchan",
   "private": true,

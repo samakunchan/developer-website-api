@@ -1,0 +1,39 @@
+# ==============================================================================
+# Production Docker Compose Configuration
+# ------------------------------------------------------------------------------
+# Optimized for a multi-project VPS environment using
+# Nginx Proxy Manager (NPM) as a global reverse proxy.
+# ==============================================================================
+
+services:
+  # NestJS API Application
+  api:
+    container_name: developer-website-api-app-prod
+    build:
+      target: runner
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - BAO_ADDR=http://openbao:8200
+      - DOCKER=true
+      - BAO_ROLE_ID=${BAO_ROLE_ID}
+      - BAO_SECRET_ID=${BAO_SECRET_ID}
+      - BAO_PATH=${BAO_PATH}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_USER_ENCODED=${POSTGRES_USER_ENCODED}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT_INTERNAL=${POSTGRES_PORT_INTERNAL}
+      - PORT=3002
+    networks:
+      - default
+      - nginx-proxy-network
+    external_links:
+      - developer-website-db-prod:postgresdb
+
+# Networking
+networks:
+  # Shared network for Nginx Proxy Manager connectivity
+  nginx-proxy-network:
+    external: true

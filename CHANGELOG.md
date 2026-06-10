@@ -1,5 +1,37 @@
 # CHANGELOG developer-website-api
 
+## 🚀 0.3.0 - 10/06/2026
+
+### Added
+
+- **Dockerization Configuration**:
+  - Added multi-stage `Dockerfile` (with targets `deps`, `dev`, `builder`, and `runner`).
+  - Added `.dockerignore` file.
+  - Added `compose.yml`, `compose-dev.yml`, `compose-stage.yml`, and `compose-prod.yml` to define multi-environment configurations.
+  - Configured `compose-dev.yml` with `CHOKIDAR_USEPOLLING=true` for hot-reloading over mounted directories.
+  - Exposed port `3003` in `compose-stage.yml` for staging API connectivity.
+  - Added external network linking mapping the database from the `developer-website` project under the name `postgresdb`.
+
+### Changed
+
+- **Entrypoint Script**:
+  - Refactored `shells/docker-entrypoint-prod.sh` to run the compiled NestJS server (`dist/main.js`) instead of frontend Nitro.
+- **Startup and Stop Scripts**:
+  - Updated `shells/start-app.sh` and `shells/stop-app.sh` to use the non-colliding `developer-website-api-$ENV` project prefix.
+  - Refactored start/stop sequences to skip local postgresdb creation/removal since the database is externalized.
+- **Environment Detection**:
+  - Integrated dynamic running environment check via `process.env.NODE_ENV` in `AppService`.
+
+### Fixed
+
+- **Compilation Output Directory Path**:
+  - Excluded `prisma.config.ts` from compilation in `tsconfig.build.json` to ensure compiled JavaScript outputs straight to `dist/main.js` instead of `dist/src/main.js`.
+
+### Removed
+
+- **Unused Shell Scripts**:
+  - Deleted obsolete Prisma helper shell scripts from the `shells` directory.
+
 ## 🚀 0.2.0 - 09/06/2026
 
 ### Added
