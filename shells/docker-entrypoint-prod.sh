@@ -8,7 +8,13 @@ cd /app
 
 # Construct DATABASE_URL from available environment variables
 # Note: Docker's env_file doesn't support interpolation, so we do it here.
-export DATABASE_URL="postgresql://${POSTGRES_USER_ENCODED}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT_INTERNAL}/${POSTGRES_DB}?schema=public"
+# Inside Docker, container-to-container communication with the 'postgresdb' service must use the internal port 5432.
+if [ "$POSTGRES_HOST" = "postgresdb" ]; then
+    DB_PORT="5432"
+else
+    DB_PORT=${POSTGRES_PORT_INTERNAL:-5432}
+fi
+export DATABASE_URL="postgresql://${POSTGRES_USER_ENCODED}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${DB_PORT}/${POSTGRES_DB}?schema=public"
 
 # Run Prisma schema push
 echo "🔄 Synchronizing database schema..."
@@ -28,5 +34,6 @@ fi
 echo "✅ Database initialization complete."
 
 # Start the application
-echo "📡 Starting Nitro server..."
-exec node .output/server/index.mjs
+echo "📡 Starting NestJS server..."
+exec node dist/main.js
+

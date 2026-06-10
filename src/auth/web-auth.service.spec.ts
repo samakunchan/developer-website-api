@@ -41,6 +41,7 @@ describe('WebAuthService', () => {
     failedLoginAttempts: 0,
     lockoutUntil: null,
     currentSessionId: null,
+    currentApiSessionId: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

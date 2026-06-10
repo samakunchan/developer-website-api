@@ -13,6 +13,7 @@ export class AppService {
         description: pkg.description,
         author: pkg.author,
         version: pkg.version,
+        environment: process.env.NODE_ENV || 'notfound',
       };
     } catch {
       return {
@@ -21,6 +22,8 @@ export class AppService {
           "NestJS API for developer-website. It's an external API connected directly to the website.",
         author: 'Samakunchan',
         version: '0.1.0',
+        environment: process.env.NODE_ENV || 'notfound',
+        errorMessage: 'Failed to load informations. Got the default one.',
       };
     }
   }

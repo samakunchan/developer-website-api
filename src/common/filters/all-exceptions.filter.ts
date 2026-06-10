@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import e, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -24,12 +24,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const responseContent = exception.getResponse();
       console.log(responseContent);
 
-      if (typeof responseContent === 'object' && responseContent !== null) {
-        // If it's the class-validator default array error response, extract it cleanly
-        const message = (responseContent as any).error;
-        exceptionName = Array.isArray(message)
-          ? message.join(', ')
-          : String(message);
+      const constructorName = exception.constructor.name;
+      if (constructorName === 'ThemeNotFoundException') {
+        exceptionName = 'ThemeNotFoundException';
+      } else if (
+        typeof responseContent === 'object' &&
+        responseContent !== null
+      ) {
+        const errorMsg = (responseContent as any).message;
+        const messages = Array.isArray(errorMsg)
+          ? errorMsg
+          : [String(errorMsg)];
+        const hasThemeError = messages.some(
+          (msg) =>
+            msg && msg.includes('theme must be one of the following values'),
+        );
+
+        if (hasThemeError) {
+          exceptionName = 'ThemeNotFoundException';
+          status = HttpStatus.NOT_FOUND;
+        } else {
+          const message = (responseContent as any).error;
+          exceptionName = Array.isArray(message)
+            ? message.join(', ')
+            : String(message);
+        }
       } else {
         exceptionName = String(responseContent);
       }

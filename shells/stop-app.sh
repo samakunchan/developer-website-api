@@ -6,7 +6,7 @@
 # ==============================================================================
 
 ENV=${1:-dev}
-PROJECT_NAME="developer-website-$ENV"
+PROJECT_NAME="developer-website-api-$ENV"
 COMPOSE_FILES="-f compose.yml"
 
 if [ "$ENV" == "dev" ]; then
@@ -23,11 +23,10 @@ source ./shells/env-bao.sh $ENV || echo "⚠️ Could not reach OpenBao, stoppin
 
 echo "🛑 [Docker] Stopping services for $PROJECT_NAME..."
 if [ "$ENV" == "dev" ]; then
-  # In dev, only stop/remove the database and its volumes
-  docker compose -p $PROJECT_NAME $COMPOSE_FILES stop postgresdb
-  docker compose -p $PROJECT_NAME $COMPOSE_FILES rm -f -v postgresdb
+  # Stop and remove the API container in dev
+  docker compose -p $PROJECT_NAME $COMPOSE_FILES down
 else
-  # In prod, stop everything
+  # Stop and remove everything (staging/production) including volumes
   docker compose -p $PROJECT_NAME $COMPOSE_FILES down -v
 fi
 

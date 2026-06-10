@@ -1,0 +1,30 @@
+services:
+  api:
+    container_name: developer-website-api-app-stage
+    build:
+      target: runner
+    ports:
+      - '3003:3002'
+    environment:
+      - NODE_ENV=staging
+      - BAO_ADDR=http://host.docker.internal:8200
+      - DOCKER=true
+      - BAO_ROLE_ID=${BAO_ROLE_ID}
+      - BAO_SECRET_ID=${BAO_SECRET_ID}
+      - BAO_PATH=${BAO_PATH}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_USER_ENCODED=${POSTGRES_USER_ENCODED}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT_INTERNAL=${POSTGRES_PORT_INTERNAL}
+      - PORT=3002
+    networks:
+      - developer-website-network
+    external_links:
+      - developer-website-db-stage:postgresdb
+
+networks:
+  developer-website-network:
+    name: developer-website-stage_default
+    external: true
