@@ -9,11 +9,11 @@ ENV=${1:-dev}
 PROJECT_NAME="developer-website-api-$ENV"
 COMPOSE_FILES="-f compose.yml"
 
-if [ "$ENV" == "dev" ]; then
+if [ "$ENV" = "dev" ]; then
   COMPOSE_FILES="$COMPOSE_FILES -f compose-dev.yml"
-elif [ "$ENV" == "stage" ]; then
+elif [ "$ENV" = "stage" ]; then
   COMPOSE_FILES="$COMPOSE_FILES -f compose-stage.yml"
-elif [ "$ENV" == "prod" ]; then
+elif [ "$ENV" = "prod" ]; then
   COMPOSE_FILES="$COMPOSE_FILES -f compose-prod.yml"
 fi
 
@@ -22,13 +22,7 @@ fi
 source ./shells/env-bao.sh $ENV || echo "⚠️ Could not reach OpenBao, stopping with empty vars..."
 
 echo "🛑 [Docker] Stopping services for $PROJECT_NAME..."
-if [ "$ENV" == "dev" ]; then
-  # Stop and remove the API container in dev
-  docker compose -p $PROJECT_NAME $COMPOSE_FILES down
-else
-  # Stop and remove everything (staging/production) including volumes
-  docker compose -p $PROJECT_NAME $COMPOSE_FILES down -v
-fi
-
+# Stop and remove everything including volumes (e.g. anonymous node_modules cache)
+docker compose -p $PROJECT_NAME $COMPOSE_FILES down -v
 
 echo "✅ Done."
