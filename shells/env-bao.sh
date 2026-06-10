@@ -37,7 +37,7 @@ elif curl -s --connect-timeout 2 http://localhost:8200/v1/sys/health >/dev/null 
     BAO_ADDR="http://localhost:8200"
 elif [ "$ENV" = "prod" ] || [ "$ENV" = "stage" ]; then
     # Running locally but targeting production/staging (VPS IP)
-    BAO_ADDR="http://51.83.70.229:8200"
+    BAO_ADDR="$process.env.BAO_ADDR_STAGE_PROD"
 else
     # Running locally for local development
     BAO_ADDR="http://localhost:8200"

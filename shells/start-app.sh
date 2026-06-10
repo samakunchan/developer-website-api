@@ -6,7 +6,7 @@
 # ==============================================================================
 
 ENV=${1:-dev}
-PROJECT_NAME="developer-website-$ENV"
+PROJECT_NAME="developer-website-api-$ENV"
 COMPOSE_FILES="-f compose.yml"
 
 if [ "$ENV" = "dev" ]; then
@@ -29,13 +29,8 @@ fi
 
 # Launch Docker Compose
 echo "🚀 [Docker] Starting services for $PROJECT_NAME..."
-if [ "$ENV" == "dev" ]; then
-  # In dev, only start the database
-  docker compose -p $PROJECT_NAME $COMPOSE_FILES up -d --build postgresdb
-else
-  # In stage/prod, start everything
-  docker compose -p $PROJECT_NAME $COMPOSE_FILES up -d --build
-fi
+# Start all services
+docker compose -p $PROJECT_NAME $COMPOSE_FILES up -d --build
 
 
 echo "✨ Application ($ENV) is starting!"
