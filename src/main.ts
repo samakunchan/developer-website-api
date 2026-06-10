@@ -4,6 +4,8 @@ import { AppModule } from './app.module';
 import { loadSecrets } from './common/utils/bao.utils';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import * as cookieParser from 'cookie-parser';
+import * as express from 'express';
+import { join } from 'path';
 
 async function bootstrap() {
   // 1. Load secrets from OpenBao before initializing the Nest application
@@ -17,6 +19,9 @@ async function bootstrap() {
     },
     logger: ['log', 'error', 'warn'],
   });
+
+  // Serve static uploads
+  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   // 3. Register global middleware and filters
   app.use(cookieParser());
