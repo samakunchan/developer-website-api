@@ -1,6 +1,27 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.5.0 - 11/06/2026
+
+### Added
+
+- **Messages Feature Module**:
+  - Implemented `MessagesModule`, `MessagesController`, and `MessagesService` with custom input validation DTOs.
+  - Added protected endpoints guarded by `ApiAuthGuard`:
+    - `GET /messages`: Retrieve paginated and filtered contact messages.
+    - `GET /messages/unread-count`: Retrieve the number of unread contact messages.
+    - `PATCH /messages/:id/read`: Toggle the read status of a message.
+- **Unit Tests**:
+  - Implemented complete Jest unit tests for `MessagesService` and `MessagesController` with fully mocked `PrismaService` and `ApiAuthService`.
+
+### Changed
+
+- N/A
+
+### Fixed
+
+- N/A
+
 ## 🚀 0.4.0 - 10/06/2026
 
 ### Added
