@@ -10,6 +10,7 @@ import {
 import { SettingsService } from './settings.service';
 import { UpdateThemeDto } from './dto/update-theme.dto';
 import { ApiAuthGuard } from '../auth/api-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { Theme } from '@prisma/client';
 
 @Controller('settings')
@@ -23,7 +24,7 @@ export class SettingsController {
   }
 
   @Put('theme')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
   async setTheme(
     @Body() body: UpdateThemeDto,

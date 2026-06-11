@@ -12,7 +12,7 @@ jest.mock('jose', () => ({
     payload: {
       sub: '1',
       email: 'test@test.com',
-      role: 'user',
+      role: 'admin',
       name: 'Sama Test',
     },
   }),
@@ -62,7 +62,7 @@ describe('MessagesController', () => {
             verifyToken: jest.fn().mockResolvedValue({
               id: 1,
               email: 'test@test.com',
-              role: 'user',
+              role: 'admin',
             }),
           },
         },
