@@ -17,6 +17,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ApiAuthGuard } from '../auth/api-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { CreateTechStackDto } from './dto/create-tech-stack.dto';
 import { CreateSocialLinkDto } from './dto/create-social-link.dto';
 import { UpdatePersonalInfoDto } from './dto/update-personal-info.dto';
@@ -32,13 +33,13 @@ export class ProfilesController {
   }
 
   @Get()
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   async getProfile(@Req() req: Request & { user: { id: number } }) {
     return await this.profilesService.getProfile(req.user.id);
   }
 
   @Put('personal-info')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
   async updatePersonalInfo(
     @Req() req: Request & { user: { id: number } },
@@ -48,7 +49,7 @@ export class ProfilesController {
   }
 
   @Post('tech-stack')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
   async addTechStack(
     @Req() req: Request & { user: { id: number } },
@@ -58,7 +59,7 @@ export class ProfilesController {
   }
 
   @Delete('tech-stack/:id')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
   async removeTechStack(
     @Req() req: Request & { user: { id: number } },
@@ -69,7 +70,7 @@ export class ProfilesController {
   }
 
   @Post('social-link')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
   async addSocialLink(
     @Req() req: Request & { user: { id: number } },
@@ -79,7 +80,7 @@ export class ProfilesController {
   }
 
   @Delete('social-link/:id')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
   async removeSocialLink(
     @Req() req: Request & { user: { id: number } },
@@ -90,7 +91,7 @@ export class ProfilesController {
   }
 
   @Post('avatar')
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
   async updateAvatar(
