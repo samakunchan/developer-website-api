@@ -1,6 +1,36 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.6.0 - 11/06/2026
+
+### Added
+
+- **Projects Feature Module**:
+  - Implemented `ProjectsModule`, `ProjectsController`, and `ProjectsService` with custom nested validation DTOs (`CreateProjectDto`, `UpdateProjectDto`).
+  - Added public read endpoints:
+    - `GET /projects`: Retrieve all projects ordered by creation date descending.
+    - `GET /projects/:id`: Retrieve a specific project by its numeric ID.
+    - `GET /projects/slug/:slug`: Retrieve a specific project by its unique slug.
+  - Added administrative endpoints protected by `ApiAuthGuard` and `AdminGuard`:
+    - `POST /projects`: Create a new project.
+    - `PUT /projects/:id`: Update an existing project.
+    - `DELETE /projects/:id`: Delete a project and clean up its associated banner image files from the local filesystem.
+    - `PATCH /projects/:id/featured`: Toggle a project's featured status.
+    - `POST /projects/upload`: Upload and process a project banner image, resizing (medium) and optimizing it (raw & medium) using `sharp` to WebP formats, saving to `uploads/projects` directory, and returning the URL structure compatible with the frontend.
+- **Admin Guard Authorization**:
+  - Implemented `AdminGuard` to enforce role checking (`role === 'admin'`) for administrative endpoints.
+  - Applied `AdminGuard` to all endpoints in `MessagesController`, the `setTheme` endpoint in `SettingsController`, and all non-presentation endpoints in `ProfilesController` to restrict sensitive administrative actions to admin roles.
+- **Unit Tests**:
+  - Implemented complete Jest unit tests for `ProjectsService` and `ProjectsController` with mocked Prisma client, filesystem, and Sharp image processes.
+
+### Changed
+
+- Registered `ProjectsModule` in the `AppModule`.
+
+### Fixed
+
+- N/A
+
 ## 🚀 0.5.0 - 11/06/2026
 
 ### Added

@@ -11,12 +11,13 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ApiAuthGuard } from '../auth/api-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { MessagesService } from './messages.service';
 import { GetMessagesDto } from './dto/get-messages.dto';
 import { UpdateMessageReadDto } from './dto/update-message-read.dto';
 
 @Controller('messages')
-@UseGuards(ApiAuthGuard)
+@UseGuards(ApiAuthGuard, AdminGuard)
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
