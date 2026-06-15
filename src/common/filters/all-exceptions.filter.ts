@@ -18,8 +18,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let exceptionName = 'InternalServerError';
+    let message = '';
     let stack = '';
     if (exception instanceof HttpException) {
+      message = exception.toString();
       status = exception.getStatus();
       const responseContent = exception.getResponse();
       console.log(responseContent);
@@ -44,10 +46,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
           exceptionName = 'ThemeNotFoundException';
           status = HttpStatus.NOT_FOUND;
         } else {
-          const message = (responseContent as any).error;
-          exceptionName = Array.isArray(message)
-            ? message.join(', ')
-            : String(message);
+          const responseString = (responseContent as any).error;
+          const responseMessage = (responseContent as any).message;
+          exceptionName = Array.isArray(responseString)
+            ? responseString.join(', ')
+            : String(responseString);
+          message = Array.isArray(responseMessage)
+            ? responseMessage.join(', ')
+            : String(responseMessage);
         }
       } else {
         exceptionName = String(responseContent);
@@ -62,6 +68,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exceptionName =
         customMessage || exception.name || exception.constructor.name;
       stack = exception.stack || '';
+      message = exception.toString();
     } else {
       exceptionName = String(exception);
     }
@@ -84,6 +91,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: String(status),
       exceptionName: exceptionName,
+      message: message,
       path: request.url,
       date: new Date().toISOString(),
     });
