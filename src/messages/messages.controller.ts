@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, Query, UseGuards, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
 import { ApiAuthGuard } from '../auth/api-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { MessagesService } from './messages.service';
@@ -34,14 +23,8 @@ export class MessagesController {
 
   @Patch(':id/read')
   @HttpCode(HttpStatus.OK)
-  async toggleMessageRead(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateMessageReadDto,
-  ) {
-    const updated = await this.messagesService.toggleMessageRead(
-      id,
-      body.isRead,
-    );
+  async toggleMessageRead(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateMessageReadDto) {
+    const updated = await this.messagesService.toggleMessageRead(id, body.isRead);
     return { success: true, message: updated };
   }
 }

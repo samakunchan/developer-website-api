@@ -80,9 +80,9 @@ describe('WebAuthService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(null);
 
-      await expect(
-        service.signIn({ email: 'nonexistent@test.com', password: 'password' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.signIn({ email: 'nonexistent@test.com', password: 'password' })).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw BadRequestException if account is locked', async () => {
@@ -92,15 +92,11 @@ describe('WebAuthService', () => {
       };
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(lockedUser);
 
-      await expect(
-        service.signIn({ email: 'test@test.com', password: 'password' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.signIn({ email: 'test@test.com', password: 'password' })).rejects.toThrow(BadRequestException);
     });
 
     it('should authenticate successfully with correct password', async () => {
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementationOnce(() => Promise.resolve(true));
+      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => Promise.resolve(true));
 
       const result = await service.signIn({
         email: 'test@test.com',

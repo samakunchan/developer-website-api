@@ -82,9 +82,9 @@ describe('ApiAuthService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(null);
 
-      await expect(
-        service.signIn({ email: 'nonexistent@test.com', password: 'password' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.signIn({ email: 'nonexistent@test.com', password: 'password' })).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw BadRequestException if account is locked', async () => {
@@ -94,15 +94,11 @@ describe('ApiAuthService', () => {
       };
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(lockedUser);
 
-      await expect(
-        service.signIn({ email: 'test@test.com', password: 'password' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.signIn({ email: 'test@test.com', password: 'password' })).rejects.toThrow(BadRequestException);
     });
 
     it('should authenticate successfully with correct password and set currentApiSessionId', async () => {
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementationOnce(() => Promise.resolve(true));
+      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => Promise.resolve(true));
 
       const updateSpy = jest.spyOn(prisma.user, 'update');
 
@@ -149,9 +145,7 @@ describe('ApiAuthService', () => {
         ...mockUser,
         currentApiSessionId: 'different-session-id',
       };
-      jest
-        .spyOn(prisma.user, 'findUnique')
-        .mockResolvedValueOnce(mismatchedUser);
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(mismatchedUser);
 
       const result = await service.verifyToken('valid-token');
       expect(result).toBeNull();
@@ -186,11 +180,7 @@ describe('ApiAuthService', () => {
       };
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(testUser);
       const updateSpy = jest.spyOn(prisma.user, 'update');
-      jest
-        .spyOn(bcrypt, 'hash')
-        .mockImplementationOnce(
-          () => Promise.resolve('new-hashed-password') as any,
-        );
+      jest.spyOn(bcrypt, 'hash').mockImplementationOnce(() => Promise.resolve('new-hashed-password') as any);
 
       const result = await service.resetPassword({
         token: 'reset-token',

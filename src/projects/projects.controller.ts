@@ -45,20 +45,14 @@ export class ProjectsController {
   @Post()
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
-  async createProject(
-    @Req() req: Request & { user: { id: number } },
-    @Body() body: CreateProjectDto,
-  ) {
+  async createProject(@Req() req: Request & { user: { id: number } }, @Body() body: CreateProjectDto) {
     return await this.projectsService.createProject(req.user.id, body);
   }
 
   @Put(':id')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
-  async updateProject(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateProjectDto,
-  ) {
+  async updateProject(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateProjectDto) {
     return await this.projectsService.updateProject(id, body);
   }
 
@@ -81,10 +75,7 @@ export class ProjectsController {
   @UseGuards(ApiAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
-  async uploadImage(
-    @Req() req: Request,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async uploadImage(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
     const protocol = req.protocol;
     const host = req.get('host');
     const apiBaseUrl = `${protocol}://${host}`;

@@ -170,10 +170,7 @@ describe('ProjectsController', () => {
       } as any;
 
       const result = await controller.uploadImage(req, file);
-      expect(service.uploadImage).toHaveBeenCalledWith(
-        file,
-        'http://localhost',
-      );
+      expect(service.uploadImage).toHaveBeenCalledWith(file, 'http://localhost');
       expect(result.success).toBe(true);
     });
   });

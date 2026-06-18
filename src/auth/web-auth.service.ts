@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcryptjs';
@@ -17,16 +13,10 @@ const LOCKOUT_DURATION_MINUTES = 15;
 
 @Injectable()
 export class WebAuthService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly emailService: EmailService,
-  ) {}
+  constructor(private readonly prisma: PrismaService, private readonly emailService: EmailService) {}
 
   private getJwtSecret(): Uint8Array {
-    return new TextEncoder().encode(
-      process.env.SESSION_SECRET ||
-        'a-very-long-and-secure-secret-key-for-development-only',
-    );
+    return new TextEncoder().encode(process.env.SESSION_SECRET || 'a-very-long-and-secure-secret-key-for-development-only');
   }
 
   private getAppUrl(): string {
@@ -36,11 +26,7 @@ export class WebAuthService {
     if (process.env.APP_URL_PROD) {
       return process.env.APP_URL_PROD;
     }
-    return (
-      process.env.APP_URL_DEV ||
-      process.env.APP_URL ||
-      `http://localhost:${process.env.APP_PORT || 3000}`
-    );
+    return process.env.APP_URL_DEV || process.env.APP_URL || `http://localhost:${process.env.APP_PORT || 3000}`;
   }
 
   async signIn(data: SignInDto): Promise<{
@@ -57,12 +43,8 @@ export class WebAuthService {
 
     // Check for lockout
     if (user.lockoutUntil && user.lockoutUntil > new Date()) {
-      const diff = Math.ceil(
-        (user.lockoutUntil.getTime() - Date.now()) / (1000 * 60),
-      );
-      throw new BadRequestException(
-        `Account is temporarily locked. Try again in ${diff} minutes.`,
-      );
+      const diff = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / (1000 * 60));
+      throw new BadRequestException(`Account is temporarily locked. Try again in ${diff} minutes.`);
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
@@ -75,16 +57,12 @@ export class WebAuthService {
         where: { id: user.id },
         data: {
           failedLoginAttempts: newFailedAttempts,
-          lockoutUntil: isLockingOut
-            ? new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000)
-            : null,
+          lockoutUntil: isLockingOut ? new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000) : null,
         },
       });
 
       if (isLockingOut) {
-        throw new BadRequestException(
-          `Too many failed attempts. Account locked for ${LOCKOUT_DURATION_MINUTES} minutes.`,
-        );
+        throw new BadRequestException(`Too many failed attempts. Account locked for ${LOCKOUT_DURATION_MINUTES} minutes.`);
       }
 
       throw new UnauthorizedException('Invalid email or password');

@@ -41,30 +41,21 @@ export class ProfilesController {
   @Put('personal-info')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
-  async updatePersonalInfo(
-    @Req() req: Request & { user: { id: number } },
-    @Body() body: UpdatePersonalInfoDto,
-  ) {
+  async updatePersonalInfo(@Req() req: Request & { user: { id: number } }, @Body() body: UpdatePersonalInfoDto) {
     return await this.profilesService.updatePersonalInfo(req.user.id, body);
   }
 
   @Post('tech-stack')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
-  async addTechStack(
-    @Req() req: Request & { user: { id: number } },
-    @Body() body: CreateTechStackDto,
-  ) {
+  async addTechStack(@Req() req: Request & { user: { id: number } }, @Body() body: CreateTechStackDto) {
     return await this.profilesService.addTechStack(req.user.id, body);
   }
 
   @Delete('tech-stack/:id')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
-  async removeTechStack(
-    @Req() req: Request & { user: { id: number } },
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  async removeTechStack(@Req() req: Request & { user: { id: number } }, @Param('id', ParseIntPipe) id: number) {
     await this.profilesService.removeTechStack(req.user.id, id);
     return { success: true };
   }
@@ -72,20 +63,14 @@ export class ProfilesController {
   @Post('social-link')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
-  async addSocialLink(
-    @Req() req: Request & { user: { id: number } },
-    @Body() body: CreateSocialLinkDto,
-  ) {
+  async addSocialLink(@Req() req: Request & { user: { id: number } }, @Body() body: CreateSocialLinkDto) {
     return await this.profilesService.addSocialLink(req.user.id, body);
   }
 
   @Delete('social-link/:id')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
-  async removeSocialLink(
-    @Req() req: Request & { user: { id: number } },
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  async removeSocialLink(@Req() req: Request & { user: { id: number } }, @Param('id', ParseIntPipe) id: number) {
     await this.profilesService.removeSocialLink(req.user.id, id);
     return { success: true };
   }
@@ -94,17 +79,10 @@ export class ProfilesController {
   @UseGuards(ApiAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
-  async updateAvatar(
-    @Req() req: Request & { user: { id: number } },
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async updateAvatar(@Req() req: Request & { user: { id: number } }, @UploadedFile() file: Express.Multer.File) {
     const protocol = req.protocol;
     const host = req.get('host');
     const apiBaseUrl = `${protocol}://${host}`;
-    return await this.profilesService.updateAvatar(
-      req.user.id,
-      file,
-      apiBaseUrl,
-    );
+    return await this.profilesService.updateAvatar(req.user.id, file, apiBaseUrl);
   }
 }
