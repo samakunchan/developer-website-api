@@ -39,9 +39,7 @@ describe('ApiAuthController', () => {
         {
           provide: ApiAuthService,
           useValue: {
-            signIn: jest
-              .fn()
-              .mockResolvedValue({ token: 'signed-token', user: mockUser }),
+            signIn: jest.fn().mockResolvedValue({ token: 'signed-token', user: mockUser }),
             verifyToken: jest.fn().mockResolvedValue(mockUser),
             signOut: jest.fn().mockResolvedValue({ success: true }),
             forgotPassword: jest.fn().mockResolvedValue({ success: true }),

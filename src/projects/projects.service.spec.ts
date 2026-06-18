@@ -106,9 +106,7 @@ describe('ProjectsService', () => {
 
     it('should throw NotFoundException if not found', async () => {
       jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(null);
-      await expect(service.getProjectById(999)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getProjectById(999)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -124,9 +122,7 @@ describe('ProjectsService', () => {
 
     it('should throw NotFoundException if not found', async () => {
       jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(null);
-      await expect(service.getProjectBySlug('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getProjectBySlug('non-existent')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -141,9 +137,7 @@ describe('ProjectsService', () => {
         caseStudyNumber: '2',
         techIcons: ['vue'],
         techStack: [{ name: 'Vue', icon: 'vue' }],
-        features: [
-          { icon: 'icon2', title: 'Feature 2', description: 'Desc 2' },
-        ],
+        features: [{ icon: 'icon2', title: 'Feature 2', description: 'Desc 2' }],
         isFeatured: false,
         status: ProjectStatus.draft,
         image: {
@@ -197,9 +191,7 @@ describe('ProjectsService', () => {
 
     it('should throw NotFoundException if project to update is not found', async () => {
       jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(null);
-      await expect(service.updateProject(999, updateDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.updateProject(999, updateDto)).rejects.toThrow(NotFoundException);
     });
 
     it('should handle image removal if image is null', async () => {
@@ -221,9 +213,7 @@ describe('ProjectsService', () => {
 
     it('should throw NotFoundException if project to delete is not found', async () => {
       jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(null);
-      await expect(service.deleteProject(999)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.deleteProject(999)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -246,9 +236,7 @@ describe('ProjectsService', () => {
         buffer: Buffer.from([]),
       } as Express.Multer.File;
 
-      await expect(
-        service.uploadImage(file, 'http://localhost:3002'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.uploadImage(file, 'http://localhost:3002')).rejects.toThrow(BadRequestException);
     });
 
     it('should reject files larger than 5MB', async () => {
@@ -258,9 +246,7 @@ describe('ProjectsService', () => {
         buffer: Buffer.from([]),
       } as Express.Multer.File;
 
-      await expect(
-        service.uploadImage(file, 'http://localhost:3002'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.uploadImage(file, 'http://localhost:3002')).rejects.toThrow(BadRequestException);
     });
 
     it('should process and return image urls', async () => {

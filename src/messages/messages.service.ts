@@ -59,10 +59,7 @@ export class MessagesService {
       });
     } catch (error) {
       // Prisma error code for record not found: P2025
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new NotFoundException(`Message with ID ${id} not found`);
       }
       throw error;

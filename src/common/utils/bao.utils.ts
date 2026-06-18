@@ -16,9 +16,7 @@ export async function loadSecrets() {
   const path = process.env.BAO_PATH;
 
   if (!roleId || !secretId || !path) {
-    console.warn(
-      '⚠️ OpenBao configuration missing (BAO_ROLE_ID, BAO_SECRET_ID, or BAO_PATH). Skipping secret loading.',
-    );
+    console.warn('⚠️ OpenBao configuration missing (BAO_ROLE_ID, BAO_SECRET_ID, or BAO_PATH). Skipping secret loading.');
     return;
   }
 
@@ -34,9 +32,7 @@ export async function loadSecrets() {
 
     if (!loginRes.ok) {
       const error = await loginRes.text();
-      throw new Error(
-        `Failed to login to OpenBao: ${loginRes.statusText} - ${error}`,
-      );
+      throw new Error(`Failed to login to OpenBao: ${loginRes.statusText} - ${error}`);
     }
 
     const loginData = (await loginRes.json()) as {
@@ -56,9 +52,7 @@ export async function loadSecrets() {
 
     if (!secretRes.ok) {
       const error = await secretRes.text();
-      throw new Error(
-        `Failed to fetch secrets from OpenBao: ${secretRes.statusText} - ${error}`,
-      );
+      throw new Error(`Failed to fetch secrets from OpenBao: ${secretRes.statusText} - ${error}`);
     }
 
     const secretData = (await secretRes.json()) as {
@@ -68,8 +62,7 @@ export async function loadSecrets() {
 
     // 3. Inject into process.env
     Object.entries(secrets).forEach(([key, value]) => {
-      let finalValue =
-        typeof value === 'string' ? value : JSON.stringify(value);
+      let finalValue = typeof value === 'string' ? value : JSON.stringify(value);
 
       // Strip surrounding double quotes if present
       if (finalValue.startsWith('"') && finalValue.endsWith('"')) {
@@ -77,9 +70,7 @@ export async function loadSecrets() {
       }
 
       // 🐋 Docker Compatibility: Translate localhost to service names if running in Docker
-      const isDocker =
-        process.env.BAO_ADDR?.includes('host.docker.internal') ||
-        process.env.DOCKER === 'true';
+      const isDocker = process.env.BAO_ADDR?.includes('host.docker.internal') || process.env.DOCKER === 'true';
       if (isDocker && typeof finalValue === 'string') {
         // Translate DATABASE_URL: localhost:5435/5436 -> postgresdb:5432
         if (key === 'DATABASE_URL') {
@@ -92,9 +83,7 @@ export async function loadSecrets() {
 
     process.env.DATABASE_URL = `postgresql://${process.env.POSTGRES_USER_ENCODED}:${process.env.POSTGRES_PASSWORD}@postgresdb:5432/${process.env.POSTGRES_DB}?schema=public`;
 
-    console.log(
-      `✅ OpenBao: Successfully loaded ${Object.keys(secrets).length} secrets.`,
-    );
+    console.log(`✅ OpenBao: Successfully loaded ${Object.keys(secrets).length} secrets.`);
 
     secretsLoaded = true;
   } catch (error) {

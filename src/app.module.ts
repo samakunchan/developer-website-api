@@ -9,14 +9,7 @@ import { MessagesModule } from './messages/messages.module';
 import { ProjectsModule } from './projects/projects.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    AuthModule,
-    SettingsModule,
-    ProfilesModule,
-    MessagesModule,
-    ProjectsModule,
-  ],
+  imports: [PrismaModule, AuthModule, SettingsModule, ProfilesModule, MessagesModule, ProjectsModule],
   controllers: [AppController],
   providers: [AppService],
 })

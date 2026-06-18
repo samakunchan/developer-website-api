@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Req,
-  Res,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, Get, Body, Req, Res, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { WebAuthService } from './web-auth.service';
 import { SignInDto } from './dto/sign-in.dto';
@@ -22,17 +12,12 @@ export class WebAuthController {
 
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
-  async signIn(
-    @Body() body: SignInDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async signIn(@Body() body: SignInDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.webAuthService.signIn(body);
 
     res.cookie('auth_session', result.token, {
       httpOnly: true,
-      secure:
-        process.env.NODE_ENV === 'production' &&
-        process.env.SECURE_COOKIES !== 'false',
+      secure: process.env.NODE_ENV === 'production' && process.env.SECURE_COOKIES !== 'false',
       sameSite: 'lax',
       path: '/',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
@@ -44,10 +29,7 @@ export class WebAuthController {
   @Post('sign-out')
   @UseGuards(WebAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async signOut(
-    @Req() req: Request & { user: { id: number } },
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async signOut(@Req() req: Request & { user: { id: number } }, @Res({ passthrough: true }) res: Response) {
     await this.webAuthService.signOut(req.user.id);
 
     res.clearCookie('auth_session', {

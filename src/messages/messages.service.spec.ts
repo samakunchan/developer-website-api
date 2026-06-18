@@ -111,18 +111,13 @@ describe('MessagesService', () => {
     });
 
     it('should throw NotFoundException if update fails with Prisma record not found error', async () => {
-      const error = new Prisma.PrismaClientKnownRequestError(
-        'Record not found',
-        {
-          code: 'P2025',
-          clientVersion: '7.7.0',
-        },
-      );
+      const error = new Prisma.PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: '7.7.0',
+      });
       jest.spyOn(prisma.message, 'update').mockRejectedValueOnce(error);
 
-      await expect(service.toggleMessageRead(999, true)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.toggleMessageRead(999, true)).rejects.toThrow(NotFoundException);
     });
 
     it('should rethrow other database errors', async () => {

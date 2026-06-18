@@ -18,8 +18,7 @@ export class AppService {
     } catch {
       return {
         name: 'developer-website-api',
-        description:
-          "NestJS API for developer-website. It's an external API connected directly to the website.",
+        description: "NestJS API for developer-website. It's an external API connected directly to the website.",
         author: 'Samakunchan',
         version: '0.1.0',
         environment: process.env.NODE_ENV || 'notfound',
