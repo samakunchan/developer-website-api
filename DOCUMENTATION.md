@@ -353,6 +353,10 @@ Updates the default application theme.
         - `style` (string, optional)
         - `textFormat` (number, optional)
         - `textStyle` (string, optional)
+        - `tag` (string, optional)
+        - `listType` (string, optional)
+        - `start` (number, optional)
+        - `value` (number, optional)
 
 ##### Routes
 
