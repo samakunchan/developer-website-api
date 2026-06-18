@@ -1,6 +1,22 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.7.1 - 18/06/2026
+
+### Added
+
+- N/A
+
+### Changed
+
+- **Endpoint Documentation**:
+  - Updated `DOCUMENTATION.md` to document the new Lexical properties (`tag`, `listType`, `start`, and `value`).
+
+### Fixed
+
+- **Legal Documents Settings Feature**:
+  - Expanded `LexicalNodeDto` inside `UpdateLegalDocumentDto` to support missing Lexical list and heading node properties (`tag`, `listType`, `start`, and `value`) to match the client-side rich-text editor data schema.
+
 ## 🚀 0.7.0 - 18/06/2026
 
 ### Added

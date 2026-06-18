@@ -59,6 +59,22 @@ export class LexicalNodeDto {
   @IsString()
   @IsOptional()
   textStyle?: string;
+
+  @IsString()
+  @IsOptional()
+  tag?: string;
+
+  @IsString()
+  @IsOptional()
+  listType?: string;
+
+  @IsNumber()
+  @IsOptional()
+  start?: number;
+
+  @IsNumber()
+  @IsOptional()
+  value?: number;
 }
 
 export class LexicalContentDto {
