@@ -99,7 +99,7 @@ describe('SettingsService', () => {
   });
 
   describe('LegalMentions methods', () => {
-    const mockDoc = { id: 1, title: 'Mentions Légales', content: { text: 'test' } };
+    const mockDoc = { id: 1, title: 'Mentions Légales', content: '{"root":{"type":"root","version":1,"children":[]}}' };
 
     it('should get legal mentions', async () => {
       jest.spyOn(prisma.legalMentions, 'findFirst').mockResolvedValueOnce(mockDoc as any);
@@ -126,12 +126,12 @@ describe('SettingsService', () => {
 
     it('should throw InternalServerErrorException if upsert fails', async () => {
       jest.spyOn(prisma.legalMentions, 'upsert').mockRejectedValueOnce(new Error('DB error'));
-      await expect(service.setLegalMentions('title', {})).rejects.toThrow(InternalServerErrorException);
+      await expect(service.setLegalMentions('title', '')).rejects.toThrow(InternalServerErrorException);
     });
   });
 
   describe('CGU methods', () => {
-    const mockDoc = { id: 1, title: 'CGU', content: { text: 'test' } };
+    const mockDoc = { id: 1, title: 'CGU', content: '{"root":{"type":"root","version":1,"children":[]}}' };
 
     it('should get cgu', async () => {
       jest.spyOn(prisma.cGU, 'findFirst').mockResolvedValueOnce(mockDoc as any);
@@ -158,12 +158,12 @@ describe('SettingsService', () => {
 
     it('should throw InternalServerErrorException if upsert fails', async () => {
       jest.spyOn(prisma.cGU, 'upsert').mockRejectedValueOnce(new Error('DB error'));
-      await expect(service.setCGU('title', {})).rejects.toThrow(InternalServerErrorException);
+      await expect(service.setCGU('title', '')).rejects.toThrow(InternalServerErrorException);
     });
   });
 
   describe('PrivacyPolicy methods', () => {
-    const mockDoc = { id: 1, title: 'Privacy Policy', content: { text: 'test' } };
+    const mockDoc = { id: 1, title: 'Privacy Policy', content: '{"root":{"type":"root","version":1,"children":[]}}' };
 
     it('should get privacy policy', async () => {
       jest.spyOn(prisma.privacyPolicy, 'findFirst').mockResolvedValueOnce(mockDoc as any);
@@ -190,12 +190,12 @@ describe('SettingsService', () => {
 
     it('should throw InternalServerErrorException if upsert fails', async () => {
       jest.spyOn(prisma.privacyPolicy, 'upsert').mockRejectedValueOnce(new Error('DB error'));
-      await expect(service.setPrivacyPolicy('title', {})).rejects.toThrow(InternalServerErrorException);
+      await expect(service.setPrivacyPolicy('title', '')).rejects.toThrow(InternalServerErrorException);
     });
   });
 
   describe('CookiePolicy methods', () => {
-    const mockDoc = { id: 1, title: 'Cookie Policy', content: { text: 'test' } };
+    const mockDoc = { id: 1, title: 'Cookie Policy', content: '{"root":{"type":"root","version":1,"children":[]}}' };
 
     it('should get cookie policy', async () => {
       jest.spyOn(prisma.cookiePolicy, 'findFirst').mockResolvedValueOnce(mockDoc as any);
@@ -222,7 +222,7 @@ describe('SettingsService', () => {
 
     it('should throw InternalServerErrorException if upsert fails', async () => {
       jest.spyOn(prisma.cookiePolicy, 'upsert').mockRejectedValueOnce(new Error('DB error'));
-      await expect(service.setCookiePolicy('title', {})).rejects.toThrow(InternalServerErrorException);
+      await expect(service.setCookiePolicy('title', '')).rejects.toThrow(InternalServerErrorException);
     });
   });
 });

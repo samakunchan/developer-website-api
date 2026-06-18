@@ -45,11 +45,12 @@ export class SettingsService {
   }
 
   async setLegalMentions(title: string, content: any) {
+    const dbContent = typeof content === 'object' ? JSON.stringify(content) : content;
     try {
       return await this.prisma.legalMentions.upsert({
         where: { id: 1 },
-        update: { title, content },
-        create: { id: 1, title, content },
+        update: { title, content: dbContent },
+        create: { id: 1, title, content: dbContent },
       });
     } catch (error) {
       console.error('Failed to update legal mentions in DB:', error);
@@ -68,11 +69,12 @@ export class SettingsService {
   }
 
   async setCGU(title: string, content: any) {
+    const dbContent = typeof content === 'object' ? JSON.stringify(content) : content;
     try {
       return await this.prisma.cGU.upsert({
         where: { id: 1 },
-        update: { title, content },
-        create: { id: 1, title, content },
+        update: { title, content: dbContent },
+        create: { id: 1, title, content: dbContent },
       });
     } catch (error) {
       console.error('Failed to update CGU in DB:', error);
@@ -91,11 +93,12 @@ export class SettingsService {
   }
 
   async setPrivacyPolicy(title: string, content: any) {
+    const dbContent = typeof content === 'object' ? JSON.stringify(content) : content;
     try {
       return await this.prisma.privacyPolicy.upsert({
         where: { id: 1 },
-        update: { title, content },
-        create: { id: 1, title, content },
+        update: { title, content: dbContent },
+        create: { id: 1, title, content: dbContent },
       });
     } catch (error) {
       console.error('Failed to update privacy policy in DB:', error);
@@ -114,11 +117,12 @@ export class SettingsService {
   }
 
   async setCookiePolicy(title: string, content: any) {
+    const dbContent = typeof content === 'object' ? JSON.stringify(content) : content;
     try {
       return await this.prisma.cookiePolicy.upsert({
         where: { id: 1 },
-        update: { title, content },
-        create: { id: 1, title, content },
+        update: { title, content: dbContent },
+        create: { id: 1, title, content: dbContent },
       });
     } catch (error) {
       console.error('Failed to update cookie policy in DB:', error);
