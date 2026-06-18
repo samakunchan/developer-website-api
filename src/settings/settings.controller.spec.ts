@@ -35,9 +35,15 @@ describe('SettingsController', () => {
           provide: SettingsService,
           useValue: {
             getTheme: jest.fn().mockResolvedValue(Theme.forest),
-            setTheme: jest
-              .fn()
-              .mockResolvedValue({ success: true, theme: Theme.forest }),
+            setTheme: jest.fn().mockResolvedValue({ success: true, theme: Theme.forest }),
+            getLegalMentions: jest.fn(),
+            setLegalMentions: jest.fn(),
+            getCGU: jest.fn(),
+            setCGU: jest.fn(),
+            getPrivacyPolicy: jest.fn(),
+            setPrivacyPolicy: jest.fn(),
+            getCookiePolicy: jest.fn(),
+            setCookiePolicy: jest.fn(),
           },
         },
         {
@@ -75,6 +81,82 @@ describe('SettingsController', () => {
       const result = await controller.setTheme(body);
       expect(service.setTheme).toHaveBeenCalledWith(Theme.forest);
       expect(result).toEqual({ success: true, theme: Theme.forest });
+    });
+  });
+
+  describe('LegalMentions endpoints', () => {
+    const mockDoc = { id: 1, title: 'Mentions Légales', content: { text: 'test' } };
+
+    it('should return legal mentions', async () => {
+      jest.spyOn(service, 'getLegalMentions').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.getLegalMentions();
+      expect(service.getLegalMentions).toHaveBeenCalled();
+      expect(result).toEqual(mockDoc);
+    });
+
+    it('should update legal mentions', async () => {
+      const body = { title: 'Mentions Légales', content: { text: 'test' } };
+      jest.spyOn(service, 'setLegalMentions').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.setLegalMentions(body);
+      expect(service.setLegalMentions).toHaveBeenCalledWith(body.title, body.content);
+      expect(result).toEqual(mockDoc);
+    });
+  });
+
+  describe('CGU endpoints', () => {
+    const mockDoc = { id: 1, title: 'CGU', content: { text: 'test' } };
+
+    it('should return cgu', async () => {
+      jest.spyOn(service, 'getCGU').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.getCGU();
+      expect(service.getCGU).toHaveBeenCalled();
+      expect(result).toEqual(mockDoc);
+    });
+
+    it('should update cgu', async () => {
+      const body = { title: 'CGU', content: { text: 'test' } };
+      jest.spyOn(service, 'setCGU').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.setCGU(body);
+      expect(service.setCGU).toHaveBeenCalledWith(body.title, body.content);
+      expect(result).toEqual(mockDoc);
+    });
+  });
+
+  describe('PrivacyPolicy endpoints', () => {
+    const mockDoc = { id: 1, title: 'Privacy Policy', content: { text: 'test' } };
+
+    it('should return privacy policy', async () => {
+      jest.spyOn(service, 'getPrivacyPolicy').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.getPrivacyPolicy();
+      expect(service.getPrivacyPolicy).toHaveBeenCalled();
+      expect(result).toEqual(mockDoc);
+    });
+
+    it('should update privacy policy', async () => {
+      const body = { title: 'Privacy Policy', content: { text: 'test' } };
+      jest.spyOn(service, 'setPrivacyPolicy').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.setPrivacyPolicy(body);
+      expect(service.setPrivacyPolicy).toHaveBeenCalledWith(body.title, body.content);
+      expect(result).toEqual(mockDoc);
+    });
+  });
+
+  describe('CookiePolicy endpoints', () => {
+    const mockDoc = { id: 1, title: 'Cookie Policy', content: { text: 'test' } };
+
+    it('should return cookie policy', async () => {
+      jest.spyOn(service, 'getCookiePolicy').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.getCookiePolicy();
+      expect(service.getCookiePolicy).toHaveBeenCalled();
+      expect(result).toEqual(mockDoc);
+    });
+
+    it('should update cookie policy', async () => {
+      const body = { title: 'Cookie Policy', content: { text: 'test' } };
+      jest.spyOn(service, 'setCookiePolicy').mockResolvedValueOnce(mockDoc as any);
+      const result = await controller.setCookiePolicy(body);
+      expect(service.setCookiePolicy).toHaveBeenCalledWith(body.title, body.content);
+      expect(result).toEqual(mockDoc);
     });
   });
 });
