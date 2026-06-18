@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -42,9 +38,7 @@ export class ProjectsService {
       }
     };
 
-    const paths = [getLocalPath(mediumUrl), getLocalPath(rawUrl)].filter(
-      Boolean,
-    ) as string[];
+    const paths = [getLocalPath(mediumUrl), getLocalPath(rawUrl)].filter(Boolean) as string[];
 
     for (const p of paths) {
       await fs.unlink(p).catch(() => undefined);
@@ -164,12 +158,8 @@ export class ProjectsService {
       where: { id },
       data: {
         ...projectData,
-        techStack: projectData.techStack
-          ? (projectData.techStack as any)
-          : undefined,
-        features: projectData.features
-          ? (projectData.features as any)
-          : undefined,
+        techStack: projectData.techStack ? (projectData.techStack as any) : undefined,
+        features: projectData.features ? (projectData.features as any) : undefined,
         image: imageUpdateAction,
       },
       include: { image: true },
@@ -218,9 +208,7 @@ export class ProjectsService {
   async uploadImage(file: Express.Multer.File, apiBaseUrl: string) {
     const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     if (!VALID_FILE_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Format non supporté. Utilisez JPG, PNG ou WebP.',
-      );
+      throw new BadRequestException('Format non supporté. Utilisez JPG, PNG ou WebP.');
     }
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -239,16 +227,11 @@ export class ProjectsService {
     const rawPath = path.join(storageDir, rawFilename);
 
     await Promise.all([
-      sharp(file.buffer)
-        .resize(1200, 800, { fit: 'cover' })
-        .toFormat('webp', { quality: 80 })
-        .toFile(mediumPath),
+      sharp(file.buffer).resize(1200, 800, { fit: 'cover' }).toFormat('webp', { quality: 80 }).toFile(mediumPath),
       sharp(file.buffer).toFormat('webp', { quality: 90 }).toFile(rawPath),
     ]);
 
-    const baseUrl = apiBaseUrl.endsWith('/')
-      ? apiBaseUrl.slice(0, -1)
-      : apiBaseUrl;
+    const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
 
     return {
       success: true,

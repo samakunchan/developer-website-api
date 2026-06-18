@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTechStackDto } from './dto/create-tech-stack.dto';
 import { CreateSocialLinkDto } from './dto/create-social-link.dto';
@@ -23,9 +18,7 @@ export class ProfilesService {
     const email = process.env.ADMIN_EMAIL;
     console.log(email);
     if (!email) {
-      throw new BadRequestException(
-        'ADMIN_EMAIL environment variable is not defined',
-      );
+      throw new BadRequestException('ADMIN_EMAIL environment variable is not defined');
     }
 
     const user = await this.prisma.user.findUnique({
@@ -148,16 +141,10 @@ export class ProfilesService {
   /**
    * Handles the profile photo upload, resizes/optimizes it via sharp, saves it to disk, and updates DB.
    */
-  async updateAvatar(
-    userId: number,
-    file: Express.Multer.File,
-    apiBaseUrl: string,
-  ) {
+  async updateAvatar(userId: number, file: Express.Multer.File, apiBaseUrl: string) {
     const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     if (!VALID_FILE_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Format non supporté. Utilisez JPG, PNG ou WebP.',
-      );
+      throw new BadRequestException('Format non supporté. Utilisez JPG, PNG ou WebP.');
     }
 
     const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -188,11 +175,7 @@ export class ProfilesService {
         }
       };
 
-      const pathsToUnlink = [
-        getLocalPath(oldImage.tiny),
-        getLocalPath(oldImage.medium),
-        getLocalPath(oldImage.raw),
-      ];
+      const pathsToUnlink = [getLocalPath(oldImage.tiny), getLocalPath(oldImage.medium), getLocalPath(oldImage.raw)];
 
       for (const p of pathsToUnlink) {
         await fs.unlink(p).catch(() => undefined);
@@ -208,20 +191,12 @@ export class ProfilesService {
     const rawPath = path.join(storageDir, rawFilename);
 
     await Promise.all([
-      sharp(file.buffer)
-        .resize(32, 32, { fit: 'cover' })
-        .toFormat('webp')
-        .toFile(tinyPath),
-      sharp(file.buffer)
-        .resize(80, 80, { fit: 'cover' })
-        .toFormat('webp')
-        .toFile(mediumPath),
+      sharp(file.buffer).resize(32, 32, { fit: 'cover' }).toFormat('webp').toFile(tinyPath),
+      sharp(file.buffer).resize(80, 80, { fit: 'cover' }).toFormat('webp').toFile(mediumPath),
       sharp(file.buffer).toFormat('webp', { quality: 80 }).toFile(rawPath),
     ]);
 
-    const baseUrl = apiBaseUrl.endsWith('/')
-      ? apiBaseUrl.slice(0, -1)
-      : apiBaseUrl;
+    const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
     const dbPaths = {
       tiny: `${baseUrl}/uploads/me/${tinyFilename}`,
       medium: `${baseUrl}/uploads/me/${mediumFilename}`,

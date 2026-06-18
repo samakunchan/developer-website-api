@@ -41,9 +41,7 @@ export class EmailService {
 
   async sendEmail({ to, subject, html, text }: SendEmailParams) {
     const transporter = await this.getTransporter();
-    const from =
-      process.env.EMAIL_FROM ||
-      '"Secure Papanguesoft" <contact@samakunchan-technology.com>';
+    const from = process.env.EMAIL_FROM || '"Secure Papanguesoft" <contact@samakunchan-technology.com>';
 
     const info = await transporter.sendMail({
       from,

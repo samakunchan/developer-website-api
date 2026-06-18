@@ -41,9 +41,7 @@ describe('WebAuthController', () => {
         {
           provide: WebAuthService,
           useValue: {
-            signIn: jest
-              .fn()
-              .mockResolvedValue({ token: 'signed-token', user: mockUser }),
+            signIn: jest.fn().mockResolvedValue({ token: 'signed-token', user: mockUser }),
             signOut: jest.fn().mockResolvedValue({ success: true }),
             verifySession: jest.fn().mockResolvedValue(mockUser),
             forgotPassword: jest.fn().mockResolvedValue({ success: true }),
@@ -71,11 +69,7 @@ describe('WebAuthController', () => {
       const result = await controller.signIn(body, res);
 
       expect(service.signIn).toHaveBeenCalledWith(body);
-      expect(res.cookie).toHaveBeenCalledWith(
-        'auth_session',
-        'signed-token',
-        expect.any(Object),
-      );
+      expect(res.cookie).toHaveBeenCalledWith('auth_session', 'signed-token', expect.any(Object));
       expect(result).toEqual({ success: true, user: mockUser });
     });
   });

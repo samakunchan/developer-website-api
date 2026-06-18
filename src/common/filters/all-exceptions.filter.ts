@@ -1,10 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -18,8 +12,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let exceptionName = 'InternalServerError';
+    let message = '';
     let stack = '';
     if (exception instanceof HttpException) {
+      message = exception.toString();
       status = exception.getStatus();
       const responseContent = exception.getResponse();
       console.log(responseContent);
@@ -27,27 +23,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const constructorName = exception.constructor.name;
       if (constructorName === 'ThemeNotFoundException') {
         exceptionName = 'ThemeNotFoundException';
-      } else if (
-        typeof responseContent === 'object' &&
-        responseContent !== null
-      ) {
+      } else if (typeof responseContent === 'object' && responseContent !== null) {
         const errorMsg = (responseContent as any).message;
-        const messages = Array.isArray(errorMsg)
-          ? errorMsg
-          : [String(errorMsg)];
-        const hasThemeError = messages.some(
-          (msg) =>
-            msg && msg.includes('theme must be one of the following values'),
-        );
+        const messages = Array.isArray(errorMsg) ? errorMsg : [String(errorMsg)];
+        const hasThemeError = messages.some((msg) => msg && msg.includes('theme must be one of the following values'));
 
         if (hasThemeError) {
           exceptionName = 'ThemeNotFoundException';
           status = HttpStatus.NOT_FOUND;
         } else {
-          const message = (responseContent as any).error;
-          exceptionName = Array.isArray(message)
-            ? message.join(', ')
-            : String(message);
+          const responseString = (responseContent as any).error;
+          const responseMessage = (responseContent as any).message;
+          exceptionName = Array.isArray(responseString) ? responseString.join(', ') : String(responseString);
+          message = Array.isArray(responseMessage) ? responseMessage.join(', ') : String(responseMessage);
         }
       } else {
         exceptionName = String(responseContent);
@@ -59,23 +47,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (exception.message.includes('this.prisma.user.findUnique()')) {
         customMessage = 'UserNotFoundException';
       }
-      exceptionName =
-        customMessage || exception.name || exception.constructor.name;
+      exceptionName = customMessage || exception.name || exception.constructor.name;
       stack = exception.stack || '';
+      message = exception.toString();
     } else {
       exceptionName = String(exception);
     }
 
     // Append to api_error_logs.txt
     if (stack) {
-      const logMessage = `[${new Date().toISOString()}] ${request.method} ${
-        request.url
-      }\n${stack}\n\n`;
+      const logMessage = `[${new Date().toISOString()}] ${request.method} ${request.url}\n${stack}\n\n`;
       try {
-        fs.appendFileSync(
-          path.join(process.cwd(), 'api_error_logs.txt'),
-          logMessage,
-        );
+        fs.appendFileSync(path.join(process.cwd(), 'api_error_logs.txt'), logMessage);
       } catch (err) {
         console.error('Failed to write exception to log file', err);
       }
@@ -84,6 +67,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: String(status),
       exceptionName: exceptionName,
+      message: message,
       path: request.url,
       date: new Date().toISOString(),
     });
