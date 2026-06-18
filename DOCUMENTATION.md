@@ -77,11 +77,11 @@ Retrieves information about the current API version and environment.
 
   ```json
   {
-    "name": "developer-website-api",
-    "description": "NestJS API for developer-website. It's an external API connected directly to the website.",
-    "author": "Samakunchan",
-    "version": "0.1.0",
-    "environment": "development"
+    "name": "[APP_NAME]",
+    "description": "[APP_DESCRIPTION]",
+    "author": "[APP_AUTHOR]",
+    "version": "[APP_VERSION]",
+    "environment": "[APP_ENV]"
   }
   ```
 
