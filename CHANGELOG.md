@@ -1,6 +1,28 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.7.0 - 18/06/2026
+
+### Added
+
+- **Legal Documents Settings Feature**:
+  - Implemented `SettingsController` and `SettingsService` endpoints to manage rich-text based pages: **Legal Mentions** (`legal-mentions`), **CGU** (`cgu`), **Privacy Policy** (`privacy-policy`), and **Cookie Policy** (`cookie-policy`).
+  - Added public read endpoints: `GET /settings/legal-mentions`, `GET /settings/cgu`, `GET /settings/privacy-policy`, and `GET /settings/cookie-policy`.
+  - Added administrative write endpoints protected by `ApiAuthGuard` and `AdminGuard`: `PUT /settings/legal-mentions`, `PUT /settings/cgu`, `PUT /settings/privacy-policy`, and `PUT /settings/cookie-policy`.
+  - Implemented custom structural JSON validation decorator `@IsLexicalJSON()` inside `UpdateLegalDocumentDto` to recursively validate nested Lexical editor node tree schemas, preventing NestJS global `{ whitelist: true }` pipe from pruning internal node properties.
+- **Unit Tests**:
+  - Implemented complete Jest unit tests for `SettingsController` and `SettingsService` verifying database fetching, document upserting/stringification, and Lexical structure validation.
+
+### Changed
+
+- **Endpoint Documentation**:
+  - Fully rewrote and restructured `DOCUMENTATION.md` to follow a strict `#### Sub-Feature` -> `##### DTO Models` -> `##### Routes` -> `###### METHOD /route` hierarchy matching `example.md`.
+  - Documented precise JSON payloads for all DTO request bodies.
+
+### Fixed
+
+- N/A
+
 ## 🚀 0.6.0 - 11/06/2026
 
 ### Added
