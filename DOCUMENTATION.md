@@ -60,7 +60,15 @@ All unhandled errors and exceptions are caught by `AllExceptionsFilter` and retu
 
 ### 🏠 General / Home Info
 
-#### `GET /`
+#### General Info
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `GET /`
 
 Retrieves information about the current API version and environment.
 
@@ -69,11 +77,11 @@ Retrieves information about the current API version and environment.
 
   ```json
   {
-    "name": "developer-website-api",
-    "description": "NestJS API for developer-website. It's an external API connected directly to the website.",
-    "author": "Samakunchan",
-    "version": "0.1.0",
-    "environment": "development"
+    "name": "[APP_NAME]",
+    "description": "[APP_DESCRIPTION]",
+    "author": "[APP_AUTHOR]",
+    "version": "[APP_VERSION]",
+    "environment": "[APP_ENV]"
   }
   ```
 
@@ -83,28 +91,29 @@ Retrieves information about the current API version and environment.
 
 Both authentication sub-modules share similar DTOs but differ in session management (tokens vs cookies).
 
-#### DTO Schemas
+#### Sign In
 
-- **SignInDto**:
-  - `email` (string, required, format: email)
-  - `password` (string, required)
-- **ForgotPasswordDto**:
-  - `email` (string, required, format: email)
-- **ResetPasswordDto**:
-  - `token` (string, required)
-  - `password` (string, required, minLength: 8)
-  - `confirmPassword` (string, required, minLength: 8)
+##### DTO Models
 
----
+- `email` (string, required, format: email) -> The email address to sign in.
+- `password` (string, required) -> The account password.
 
-#### 1. API Auth (`/auth/api`)
+##### Routes
 
-##### `POST /auth/api/sign-in`
+###### `POST /auth/api/sign-in`
 
 Signs in a user and returns an API access token.
 
 - **Auth Requirement**: Public
-- **Request Body**: `SignInDto`
+- **Request Body**:
+
+  ```json
+  {
+    "email": "contact@samakunchan-technology.com",
+    "password": "yourpassword"
+  }
+  ```
+
 - **Response (200 OK)**:
 
   ```json
@@ -120,7 +129,17 @@ Signs in a user and returns an API access token.
   }
   ```
 
-##### `POST /auth/api/sign-out`
+---
+
+#### Sign Out
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `POST /auth/api/sign-out`
 
 Revokes the current API session token.
 
@@ -133,7 +152,31 @@ Revokes the current API session token.
   }
   ```
 
-##### `GET /auth/api/session`
+###### `POST /auth/web/sign-out`
+
+Clears the `auth_session` cookie and invalidates the session.
+
+- **Auth Requirement**: `WebAuthGuard`
+- **Cookie Cleared**: `auth_session=; Path=/; Max-Age=0`
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "success": true
+  }
+  ```
+
+---
+
+#### User Session
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `GET /auth/api/session`
 
 Returns the currently authenticated user's profile details.
 
@@ -151,76 +194,7 @@ Returns the currently authenticated user's profile details.
   }
   ```
 
-##### `POST /auth/api/forgot-password`
-
-Sends a password reset link to the email specified.
-
-- **Auth Requirement**: Public
-- **Request Body**: `ForgotPasswordDto`
-- **Response (200 OK)**:
-
-  ```json
-  {
-    "success": true,
-    "message": "Password reset email sent successfully"
-  }
-  ```
-
-##### `POST /auth/api/reset-password`
-
-Resets the password using a reset token.
-
-- **Auth Requirement**: Public
-- **Request Body**: `ResetPasswordDto`
-- **Response (200 OK)**:
-
-  ```json
-  {
-    "success": true,
-    "message": "Password has been reset successfully"
-  }
-  ```
-
----
-
-#### 2. Web Auth (`/auth/web`)
-
-##### `POST /auth/web/sign-in`
-
-Signs in a user and sets the HttpOnly session cookie `auth_session`.
-
-- **Auth Requirement**: Public
-- **Request Body**: `SignInDto`
-- **Cookie Set**: `auth_session=<token>; HttpOnly; SameSite=Lax; Max-Age=86400; Path=/` (Secure in production)
-- **Response (200 OK)**:
-
-  ```json
-  {
-    "success": true,
-    "user": {
-      "id": 1,
-      "name": "Samakunchan",
-      "email": "contact@samakunchan-technology.com",
-      "role": "admin"
-    }
-  }
-  ```
-
-##### `POST /auth/web/sign-out`
-
-Clears the `auth_session` cookie and invalidates the session.
-
-- **Auth Requirement**: `WebAuthGuard`
-- **Cookie Cleared**: `auth_session=; Path=/; Max-Age=0`
-- **Response (200 OK)**:
-
-  ```json
-  {
-    "success": true
-  }
-  ```
-
-##### `GET /auth/web/session`
+###### `GET /auth/web/session`
 
 Returns the current session user details.
 
@@ -238,12 +212,29 @@ Returns the current session user details.
   }
   ```
 
-##### `POST /auth/web/forgot-password`
+---
 
-Same behavior as API forgot password.
+#### Forgot Password
+
+##### DTO Models
+
+- `email` (string, required, format: email) -> The email address to send the password reset link.
+
+##### Routes
+
+###### `POST /auth/api/forgot-password`
+
+Sends a password reset link to the email specified.
 
 - **Auth Requirement**: Public
-- **Request Body**: `ForgotPasswordDto`
+- **Request Body**:
+
+  ```json
+  {
+    "email": "contact@samakunchan-technology.com"
+  }
+  ```
+
 - **Response (200 OK)**:
 
   ```json
@@ -253,12 +244,33 @@ Same behavior as API forgot password.
   }
   ```
 
-##### `POST /auth/web/reset-password`
+---
 
-Same behavior as API reset password.
+#### Reset Password
+
+##### DTO Models
+
+- `token` (string, required) -> The password reset token received via email.
+- `password` (string, required, minLength: 8) -> The new password.
+- `confirmPassword` (string, required, minLength: 8) -> The password confirmation. Must match the new password.
+
+##### Routes
+
+###### `POST /auth/api/reset-password`
+
+Resets the password using a reset token.
 
 - **Auth Requirement**: Public
-- **Request Body**: `ResetPasswordDto`
+- **Request Body**:
+
+  ```json
+  {
+    "token": "reset-token-xyz",
+    "password": "newpassword123",
+    "confirmPassword": "newpassword123"
+  }
+  ```
+
 - **Response (200 OK)**:
 
   ```json
@@ -272,7 +284,15 @@ Same behavior as API reset password.
 
 ### 🎨 Settings (`/settings`)
 
-#### `GET /settings/theme`
+#### Themes
+
+##### DTO Models
+
+- `theme` (enum, required) -> The theme name. Supported values: `dark`, `forest`, `light`, `ocean`, `desert`, `guardian`, `aegis`.
+
+##### Routes
+
+###### `GET /settings/theme`
 
 Gets the current active layout theme for the client application.
 
@@ -285,7 +305,7 @@ Gets the current active layout theme for the client application.
   }
   ```
 
-#### `PUT /settings/theme`
+###### `PUT /settings/theme`
 
 Updates the default application theme.
 
@@ -310,11 +330,219 @@ Updates the default application theme.
 
 ---
 
+#### Legal Mentions
+
+##### DTO Models
+
+- `title` (string, required) -> Title of the document.
+- `content` (string, required) -> Must be a valid stringified JSON matching the Lexical structure.
+  - **Lexical Structure Details**:
+    - `root` (object, required) -> Root node of the document.
+      - `type` (string, required, e.g. `"root"`)
+      - `version` (number, required)
+      - `children` (array of nodes, optional) -> Nested children nodes having properties:
+        - `type` (string, required, e.g., `"root"`, `"heading"`, `"paragraph"`, `"text"`, `"list"`, `"listitem"`)
+        - `version` (number, required)
+        - `text` (string, optional)
+        - `children` (array, optional)
+        - `direction` (string, optional)
+        - `format` (string/number, optional)
+        - `indent` (number, optional)
+        - `detail` (number, optional)
+        - `mode` (string, optional)
+        - `style` (string, optional)
+        - `textFormat` (number, optional)
+        - `textStyle` (string, optional)
+
+##### Routes
+
+###### `GET /settings/legal-mentions`
+
+Gets the Legal Mentions rich-text document.
+
+- **Auth Requirement**: Public
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "id": 1,
+    "title": "Mentions Légales",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu des mentions légales.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+    "createdAt": "2026-06-18T08:00:00.000Z",
+    "updatedAt": "2026-06-18T08:00:00.000Z"
+  }
+  ```
+
+###### `PUT /settings/legal-mentions`
+
+Updates/Upserts the Legal Mentions rich-text document.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Request Body**:
+
+  ```json
+  {
+    "title": "Mentions Légales",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu des mentions légales.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+  }
+  ```
+
+- **Response (200 OK)**:
+  *(Returns the updated LegalMentions object)*
+
+---
+
+#### CGU
+
+##### DTO Models
+
+- `title` (string, required) -> Title of the document.
+- `content` (string, required) -> Must be a valid stringified JSON matching the Lexical structure.
+  - **Lexical Structure Details**: *(Shares the same Lexical structure as Legal Mentions)*
+
+##### Routes
+
+###### `GET /settings/cgu`
+
+Gets the CGU (Terms & Conditions) rich-text document.
+
+- **Auth Requirement**: Public
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "id": 1,
+    "title": "Conditions Générales d'Utilisation",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu des CGU.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+    "createdAt": "2026-06-18T08:00:00.000Z",
+    "updatedAt": "2026-06-18T08:00:00.000Z"
+  }
+  ```
+
+###### `PUT /settings/cgu`
+
+Updates/Upserts the CGU rich-text document.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Request Body**:
+
+  ```json
+  {
+    "title": "Conditions Générales d'Utilisation",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu des CGU.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+  }
+  ```
+
+- **Response (200 OK)**:
+  *(Returns the updated CGU object)*
+
+---
+
+#### Privacy Policy
+
+##### DTO Models
+
+- `title` (string, required) -> Title of the document.
+- `content` (string, required) -> Must be a valid stringified JSON matching the Lexical structure.
+  - **Lexical Structure Details**: *(Shares the same Lexical structure as Legal Mentions)*
+
+##### Routes
+
+###### `GET /settings/privacy-policy`
+
+Gets the Privacy Policy rich-text document.
+
+- **Auth Requirement**: Public
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "id": 1,
+    "title": "Politique de Confidentialité",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu de la politique de confidentialité.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+    "createdAt": "2026-06-18T08:00:00.000Z",
+    "updatedAt": "2026-06-18T08:00:00.000Z"
+  }
+  ```
+
+###### `PUT /settings/privacy-policy`
+
+Updates/Upserts the Privacy Policy rich-text document.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Request Body**:
+
+  ```json
+  {
+    "title": "Politique de Confidentialité",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu de la politique de confidentialité.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+  }
+  ```
+
+- **Response (200 OK)**:
+  *(Returns the updated PrivacyPolicy object)*
+
+---
+
+#### Cookie Policy
+
+##### DTO Models
+
+- `title` (string, required) -> Title of the document.
+- `content` (string, required) -> Must be a valid stringified JSON matching the Lexical structure.
+  - **Lexical Structure Details**: *(Shares the same Lexical structure as Legal Mentions)*
+
+##### Routes
+
+###### `GET /settings/cookie-policy`
+
+Gets the Cookie Policy rich-text document.
+
+- **Auth Requirement**: Public
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "id": 1,
+    "title": "Politique des Cookies",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu de la politique des cookies.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+    "createdAt": "2026-06-18T08:00:00.000Z",
+    "updatedAt": "2026-06-18T08:00:00.000Z"
+  }
+  ```
+
+###### `PUT /settings/cookie-policy`
+
+Updates/Upserts the Cookie Policy rich-text document.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Request Body**:
+
+  ```json
+  {
+    "title": "Politique des Cookies",
+    "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Contenu de la politique des cookies.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+  }
+  ```
+
+- **Response (200 OK)**:
+  *(Returns the updated CookiePolicy object)*
+
+---
+
 ### 👤 Profiles (`/profiles`)
 
 Used to retrieve and update personal portfolio profiles, tech stacks, and social links.
 
-#### `GET /profiles/presentation`
+#### Profile Presentation
+
+##### DTO Models
+
+No request payload; returns the complete Profile response.
+
+##### Routes
+
+###### `GET /profiles/presentation`
 
 Public profile information formatted for portfolio rendering. Fetches details for the user associated with `ADMIN_EMAIL`.
 
@@ -375,7 +603,7 @@ Public profile information formatted for portfolio rendering. Fetches details fo
   }
   ```
 
-#### `GET /profiles`
+###### `GET /profiles`
 
 Gets the profile information of the currently authenticated admin user.
 
@@ -383,18 +611,39 @@ Gets the profile information of the currently authenticated admin user.
 - **Response (200 OK)**:
   *(Same structure as `GET /profiles/presentation` but based on the token owner)*
 
-#### `PUT /profiles/personal-info`
+---
+
+#### Personal Information
+
+##### DTO Models
+
+- `fullName` (string, required) -> The user's full name.
+- `professionalTitle` (string, optional, nullable) -> The professional subtitle (e.g. `"Fullstack Web & Mobile Developer"`).
+- `bio` (string, optional, nullable) -> The biography description.
+- `experience` (int, optional, >= 0, nullable) -> Years of professional experience.
+- `focus` (string, optional, nullable) -> Primary work focus or expertise.
+- `languages` (string, optional, nullable) -> Spoken or professional languages.
+
+##### Routes
+
+###### `PUT /profiles/personal-info`
 
 Updates biography details, Professional title, and overall personal meta.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
-- **Request Body** (`UpdatePersonalInfoDto`):
-  - `fullName` (string, required)
-  - `professionalTitle` (string, optional)
-  - `bio` (string, optional)
-  - `experience` (int, optional, >= 0)
-  - `focus` (string, optional)
-  - `languages` (string, optional)
+- **Request Body**:
+
+  ```json
+  {
+    "fullName": "Samakunchan",
+    "professionalTitle": "Fullstack Web & Mobile Developer",
+    "bio": "Passionate about creating modern applications using React, Node.js, and Flutter.",
+    "experience": 5,
+    "focus": "Clean architecture & user experience",
+    "languages": "French (Native), English (Professional)"
+  }
+  ```
+
 - **Response (200 OK)**:
 
   ```json
@@ -403,14 +652,31 @@ Updates biography details, Professional title, and overall personal meta.
   }
   ```
 
-#### `POST /profiles/tech-stack`
+---
+
+#### Tech Stack
+
+##### DTO Models
+
+- `name` (string, required) -> Name of the technology.
+- `category` (enum, required) -> Tech stack category. Supported values: `frontend`, `backend`, `devops`, `cloud`, `testing`, `mobile`.
+
+##### Routes
+
+###### `POST /profiles/tech-stack`
 
 Adds a technology item to the admin's tech stack.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
-- **Request Body** (`CreateTechStackDto`):
-  - `name` (string, required)
-  - `category` (enum, required: `frontend`, `backend`, `devops`, `cloud`, `testing`, `mobile`)
+- **Request Body**:
+
+  ```json
+  {
+    "name": "NestJS",
+    "category": "backend"
+  }
+  ```
+
 - **Response (201 Created)**:
 
   ```json
@@ -424,7 +690,7 @@ Adds a technology item to the admin's tech stack.
   }
   ```
 
-#### `DELETE /profiles/tech-stack/:id`
+###### `DELETE /profiles/tech-stack/:id`
 
 Deletes a tech stack entry.
 
@@ -438,16 +704,35 @@ Deletes a tech stack entry.
   }
   ```
 
-#### `POST /profiles/social-link`
+---
+
+#### Social Links
+
+##### DTO Models
+
+- `name` (string, required) -> Name of the social network/platform.
+- `url` (string, required, format: URL) -> URL target of the link.
+- `icon` (string, required) -> Icon identifier.
+- `type` (enum, required) -> Social type enum. Supported values: `github`, `linkedin`, `upwork`, `malt`, `email`.
+
+##### Routes
+
+###### `POST /profiles/social-link`
 
 Adds a social/profile link.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
-- **Request Body** (`CreateSocialLinkDto`):
-  - `name` (string, required)
-  - `url` (string, required, url format)
-  - `icon` (string, required)
-  - `type` (enum, required: `github`, `linkedin`, `upwork`, `malt`, `email`)
+- **Request Body**:
+
+  ```json
+  {
+    "name": "LinkedIn",
+    "url": "https://linkedin.com/in/samakunchan",
+    "icon": "linkedin",
+    "type": "linkedin"
+  }
+  ```
+
 - **Response (201 Created)**:
 
   ```json
@@ -463,7 +748,7 @@ Adds a social/profile link.
   }
   ```
 
-#### `DELETE /profiles/social-link/:id`
+###### `DELETE /profiles/social-link/:id`
 
 Deletes a social link.
 
@@ -477,7 +762,17 @@ Deletes a social link.
   }
   ```
 
-#### `POST /profiles/avatar`
+---
+
+#### Avatar Image
+
+##### DTO Models
+
+Uses standard `multipart/form-data` with binary payload.
+
+##### Routes
+
+###### `POST /profiles/avatar`
 
 Uploads a profile picture, resizes it automatically to 3 sizes (tiny 32x32 WebP, medium 80x80 WebP, raw optimised WebP), and saves it to disk.
 
@@ -504,32 +799,15 @@ Uploads a profile picture, resizes it automatically to 3 sizes (tiny 32x32 WebP,
 
 Provides endpoints to manage showcased portfolio projects.
 
-#### DTO Models
+#### Project Listing & Details
 
-##### `ProjectImageDto`
+##### DTO Models
 
-- `medium`: `ImageDetailDto`
-- `raw`: `ImageDetailDto`
+No request DTOs required.
 
-##### `ImageDetailDto`
+##### Routes
 
-- `url` (string, required)
-- `alt` (string, optional)
-
-##### `TechStackItemDto`
-
-- `name` (string, required)
-- `icon` (string, required)
-
-##### `FeatureItemDto`
-
-- `icon` (string, required)
-- `title` (string, required)
-- `description` (string, required)
-
----
-
-#### `GET /projects`
+###### `GET /projects`
 
 Fetches all projects ordered by creation date descending.
 
@@ -570,7 +848,7 @@ Fetches all projects ordered by creation date descending.
   ]
   ```
 
-#### `GET /projects/:id`
+###### `GET /projects/:id`
 
 Retrieves a project details by ID.
 
@@ -579,7 +857,7 @@ Retrieves a project details by ID.
 - **Response (200 OK)**:
   *(Same structure as single project object in list)*
 
-#### `GET /projects/slug/:slug`
+###### `GET /projects/slug/:slug`
 
 Retrieves project details using its unique SEO slug.
 
@@ -588,39 +866,104 @@ Retrieves project details using its unique SEO slug.
 - **Response (200 OK)**:
   *(Same structure as single project object)*
 
-#### `POST /projects`
+---
+
+#### Project Creation
+
+##### DTO Models
+
+- `slug` (string, required, unique) -> SEO slug.
+- `title` (string, required) -> Project title.
+- `description` (string, optional) -> Project description.
+- `image` (object, optional) -> Project banner image details containing:
+  - `medium` (object, required) -> Medium image details: `url` (string, required), `alt` (string, optional)
+  - `raw` (object, required) -> Raw image details: `url` (string, required), `alt` (string, optional)
+- `category` (enum, required) -> Project category. Supported values: `web`, `mobile`, `open_source`.
+- `categoryLabel` (string, optional) -> Display label for category.
+- `caseStudyNumber` (string, optional, nullable) -> Number label for sequence.
+- `techIcons` (array of strings, required) -> Icon list.
+- `techStack` (array of objects, required) -> Detail list of technologies containing `name` (string, required) and `icon` (string, required).
+- `features` (array of objects, required) -> Highlights of the project containing `icon` (string, required), `title` (string, required), and `description` (string, required).
+- `isFeatured` (boolean, optional, default: false) -> Flag to highlight on portfolio.
+- `status` (enum, optional, default: `draft`) -> Publication status. Supported values: `draft`, `published`, `unpublished`, `archived`.
+
+##### Routes
+
+###### `POST /projects`
 
 Creates a new project.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
-- **Request Body** (`CreateProjectDto`):
-  - `slug` (string, required, unique)
-  - `title` (string, required)
-  - `description` (string, optional)
-  - `image` (`ProjectImageDto`, optional)
-  - `category` (enum, required: `web`, `mobile`, `open_source`)
-  - `categoryLabel` (string, optional)
-  - `caseStudyNumber` (string, optional)
-  - `techIcons` (array of strings, required)
-  - `techStack` (array of `TechStackItemDto`, required)
-  - `features` (array of `FeatureItemDto`, required)
-  - `isFeatured` (boolean, optional, default: false)
-  - `status` (enum, optional, default: `draft`. Supported: `draft`, `published`, `unpublished`, `archived`)
+- **Request Body**:
+
+  ```json
+  {
+    "slug": "e-commerce-platform",
+    "title": "E-Commerce Web Application",
+    "description": "A fully functional e-commerce storefront with Stripe integration.",
+    "category": "web",
+    "categoryLabel": "Web App",
+    "caseStudyNumber": "01",
+    "techIcons": ["react", "nodejs", "stripe"],
+    "techStack": [
+      {
+        "name": "React",
+        "icon": "react"
+      }
+    ],
+    "features": [
+      {
+        "icon": "cart",
+        "title": "Shopping Cart",
+        "description": "Persistent item cart"
+      }
+    ],
+    "isFeatured": true,
+    "status": "published"
+  }
+  ```
+
 - **Response (201 Created)**:
   *(Returns the created Project object complete with relations)*
 
-#### `PUT /projects/:id`
+---
+
+#### Project Modification
+
+##### DTO Models
+
+- All fields of Project Creation are available but optional. Passing `image: null` will delete the associated project image and files.
+
+##### Routes
+
+###### `PUT /projects/:id`
 
 Updates a project fields.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Route Params**: `id` (int, required)
-- **Request Body** (`UpdateProjectDto`):
-  *(All fields of `CreateProjectDto` but optional. Passing `image: null` deletes the associated image and files)*
+- **Request Body**:
+
+  ```json
+  {
+    "title": "Updated E-Commerce Web Application",
+    "isFeatured": false
+  }
+  ```
+
 - **Response (200 OK)**:
   *(Returns the updated Project object)*
 
-#### `DELETE /projects/:id`
+###### `PATCH /projects/:id/featured`
+
+Toggles the `isFeatured` boolean status of a project.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Route Params**: `id` (int, required)
+- **Response (200 OK)**:
+  *(Returns the updated Project object)*
+
+###### `DELETE /projects/:id`
 
 Deletes a project and its associated image files from storage.
 
@@ -634,16 +977,17 @@ Deletes a project and its associated image files from storage.
   }
   ```
 
-#### `PATCH /projects/:id/featured`
+---
 
-Toggles the `isFeatured` boolean status of a project.
+#### Project Image Upload
 
-- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
-- **Route Params**: `id` (int, required)
-- **Response (200 OK)**:
-  *(Returns the updated Project object)*
+##### DTO Models
 
-#### `POST /projects/upload`
+Uses standard `multipart/form-data` with binary payload.
+
+##### Routes
+
+###### `POST /projects/upload`
 
 Uploads a showcase banner image, resizes it (medium size 1200x800, raw optimized), saves it to disk and returns the server urls.
 
@@ -675,22 +1019,21 @@ Uploads a showcase banner image, resizes it (medium size 1200x800, raw optimized
 
 Manages client contact message submissions.
 
-#### DTO Models
+#### Contact Messages List
 
-##### `GetMessagesDto` (Query Parameters)
+##### DTO Models
 
-- `page` (int, optional, default: 1)
-- `pageSize` (int, optional, default: 10)
-- `filter` (enum, optional, default: `all`. Options: `all`, `read`, `unread`)
-- `search` (string, optional, searches matches within `fullName`, `email`, `projectBrief`)
+- `page` (int, optional, default: 1) -> Target page number.
+- `pageSize` (int, optional, default: 10) -> Size of page.
+- `filter` (enum, optional, default: `all`) -> Filter status. Supported values: `all`, `read`, `unread`.
+- `search` (string, optional) -> Searches text inside name, email, and project brief.
+- **Message Relation Details**:
+  - `serviceType` (object) -> Selected service details containing `id` (enum, required: `web`, `mobile`, `mvp`, `ai`, `api`, `other`), `icon` (string, required), and `label` (string, required).
+  - `priceRangeType` (object) -> Selected price range details containing `id` (string, required), `currency` (string, required), and `label` (string, required).
 
-##### `UpdateMessageReadDto`
+##### Routes
 
-- `isRead` (boolean, required)
-
----
-
-#### `GET /messages`
+###### `GET /messages`
 
 Gets a list of paginated and filtered contact messages.
 
@@ -719,7 +1062,17 @@ Gets a list of paginated and filtered contact messages.
   }
   ```
 
-#### `GET /messages/unread-count`
+---
+
+#### Unread Messages Count
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `GET /messages/unread-count`
 
 Retrieves the total count of unread messages.
 
@@ -732,13 +1085,30 @@ Retrieves the total count of unread messages.
   }
   ```
 
-#### `PATCH /messages/:id/read`
+---
+
+#### Message Read Status
+
+##### DTO Models
+
+- `isRead` (boolean, required) -> Target read status.
+
+##### Routes
+
+###### `PATCH /messages/:id/read`
 
 Marks a message read status.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Route Params**: `id` (int, required)
-- **Request Body**: `UpdateMessageReadDto`
+- **Request Body**:
+
+  ```json
+  {
+    "isRead": true
+  }
+  ```
+
 - **Response (200 OK)**:
 
   ```json
