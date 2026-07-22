@@ -22,6 +22,10 @@
 - **Environment Configuration**:
   - Appended local S3 / Garage configuration parameters to `.env`.
 
+### Fixed
+
+- The strategy has been updated for `developer-website-api/shells/docker-entrypoint-prod.sh` and `developer-website-api/shells/docker-entrypoint-stage.sh`. Now we have a distinct project to manage database and seed.
+
 ## 🚀 0.7.1 - 18/06/2026
 
 ### Added
