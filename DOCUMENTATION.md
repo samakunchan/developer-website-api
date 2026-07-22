@@ -8,6 +8,7 @@ Welcome to the API documentation for the **Developer Website API**. This is a Ne
 
 - **Local Base URL**: `http://localhost:3002` (or the value of the `REPLACED_PORT` / `PORT` environment variables)
 - **Static Assets Directory**: `/uploads` is exposed to serve uploaded images (e.g., `http://localhost:3002/uploads/me/...`)
+- **Garage S3 Storage**: Used for documents management. In development, S3 API runs on `http://localhost:3900` (handled by backend client via `host.docker.internal` inside Docker), and S3 Web public access runs on `http://papanguesoft.web.garage.localhost:3902`.
 - **Global Validation**: Standard DTO validation is active. Invalid requests return detailed `400 Bad Request` messages containing constraint failures.
 
 ---
@@ -965,7 +966,7 @@ Toggles the `isFeatured` boolean status of a project.
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Route Params**: `id` (int, required)
 - **Response (200 OK)**:
-  *(Returns the updated Project object)*
+  *(Returns the updated Project object complete with relations, including image)*
 
 ###### `DELETE /projects/:id`
 
@@ -1129,5 +1130,90 @@ Marks a message read status.
       "createdAt": "2026-06-11T08:15:00.000Z",
       "updatedAt": "2026-06-11T08:16:00.000Z"
     }
+  }
+  ```
+
+---
+
+### 🗄️ Documents (`/documents`)
+
+Manages document storage in a local Garage S3 cluster.
+
+#### Upload Document
+
+##### DTO Models
+
+Multipart Form Data:
+
+- `file` (binary, required) -> The file to upload. Allowed types: all document types.
+
+##### Routes
+
+###### `POST /documents/upload`
+
+Uploads a document file to the Garage S3 storage bucket.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Request Body (multipart/form-data)**:
+  - Form-data key `file` containing the file attachment.
+- **Response (201 Created)**:
+
+  ```json
+  {
+    "success": true,
+    "url": "http://papanguesoft.web.garage.localhost:3902/1784225727335-F2100018.pdf",
+    "name": "1784225727335-F2100018.pdf"
+  }
+  ```
+
+---
+
+#### List Documents
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `GET /documents`
+
+Retrieves a list of all documents stored in the S3 bucket, sorted by their last modified date in descending order.
+
+- **Auth Requirement**: Public (None)
+- **Response (200 OK)**:
+
+  ```json
+  [
+    {
+      "name": "1784225727335-F2100018.pdf",
+      "lastModified": "2026-07-16T18:15:27.000Z",
+      "size": 66027,
+      "url": "http://papanguesoft.web.garage.localhost:3902/1784225727335-F2100018.pdf"
+    }
+  ]
+  ```
+
+---
+
+#### Delete Document
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `DELETE /documents/:name`
+
+Deletes a specific document from the Garage S3 storage by its unique object name.
+
+- **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
+- **Route Params**: `name` (string, required) -> The unique name of the document.
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "success": true
   }
   ```

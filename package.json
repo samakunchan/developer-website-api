@@ -1,6 +1,6 @@
 {
   "name": "developer-website-api",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "NestJS API for developer-website running with OpenBao and PostgreSQL",
   "author": "Samakunchan",
   "private": true,
@@ -31,6 +31,7 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
     "jose": "^6.2.2",
+    "minio": "^8.0.7",
     "nodemailer": "^8.0.7",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.1.13",
@@ -65,6 +66,7 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "4.1.1",
+    "tsx": "^4.23.1",
     "typescript": "^5.9.3"
   },
   "jest": {

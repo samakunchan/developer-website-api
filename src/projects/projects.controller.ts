@@ -76,9 +76,10 @@ export class ProjectsController {
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
   async uploadImage(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const apiBaseUrl = `${protocol}://${host}`;
+    const protocol: string = req.protocol;
+    const host: string | undefined = req.get('host');
+
+    const apiBaseUrl: string = host ? `${protocol}://${host}` : `${protocol}://localhost`;
     return await this.projectsService.uploadImage(file, apiBaseUrl);
   }
 }

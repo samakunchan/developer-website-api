@@ -7,9 +7,10 @@ import { SettingsModule } from './settings/settings.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { MessagesModule } from './messages/messages.module';
 import { ProjectsModule } from './projects/projects.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, SettingsModule, ProfilesModule, MessagesModule, ProjectsModule],
+  imports: [PrismaModule, AuthModule, SettingsModule, ProfilesModule, MessagesModule, ProjectsModule, DocumentsModule],
   controllers: [AppController],
   providers: [AppService],
 })
