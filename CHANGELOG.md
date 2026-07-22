@@ -1,6 +1,31 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.8.0 - 22/07/2026
+
+### Added
+
+- **Documents Feature Module**:
+  - Implemented `DocumentsModule`, `DocumentsController`, and `DocumentsService` using `minio` client SDK.
+  - Added public read endpoint:
+    - `GET /documents`: Retrieve all documents stored in the S3 bucket, sorted by last modified date in descending order.
+  - Added administrative endpoints protected by `ApiAuthGuard` and `AdminGuard`:
+    - `POST /documents/upload`: Upload a document file to the Garage S3 storage bucket. Automatically resolves local endpoints inside Docker container using `host.docker.internal` gateway, and constructs public URLs using S3 public port/host mapping.
+    - `DELETE /documents/:name`: Delete a document by its S3 object key name.
+- **Unit Tests**:
+  - Implemented complete unit tests for `DocumentsService` and `DocumentsController` with a fully mocked S3 Client and stream listener setup.
+
+### Changed
+
+- **Endpoint Documentation**:
+  - Updated `DOCUMENTATION.md` to document the new `Documents` feature, its endpoints, and DTO models.
+- **Environment Configuration**:
+  - Appended local S3 / Garage configuration parameters to `.env`.
+
+### Fixed
+
+- The strategy has been updated for `developer-website-api/shells/docker-entrypoint-prod.sh` and `developer-website-api/shells/docker-entrypoint-stage.sh`. Now we have a distinct project to manage database and seed.
+
 ## 🚀 0.7.1 - 18/06/2026
 
 ### Added

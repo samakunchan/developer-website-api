@@ -40,3 +40,10 @@ api_error_logs.txt
 todo.md
 uploads/*
 .history
+
+# Prisma
+prisma/migrations/*
+prisma/migration_lock.toml
+
+# Projects
+public/*

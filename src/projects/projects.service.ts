@@ -199,6 +199,7 @@ export class ProjectsService {
     return await this.prisma.project.update({
       where: { id },
       data: { isFeatured: !project.isFeatured },
+      include: { image: true },
     });
   }
 
