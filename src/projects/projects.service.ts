@@ -2,16 +2,18 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ProjectStatus } from '@prisma/client';
 import * as sharp from 'sharp';
 import * as path from 'path';
 import { promises as fs } from 'fs';
+import { DocumentsService } from '../documents/documents.service';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly documentsService: DocumentsService) {}
 
   /**
-   * Safe helper to extract URL and delete file from filesystem
+   * Safe helper to extract URL and delete file from S3 or filesystem
    */
   private async cleanupFiles(image: any) {
     if (!image) return;
@@ -27,21 +29,53 @@ export class ProjectsService {
     const mediumUrl = extractUrl(image.medium);
     const rawUrl = extractUrl(image.raw);
 
-    const getLocalPath = (url: string | null) => {
+    const otherImages = await this.prisma.projectImage.findMany({
+      where: {
+        projectId: { not: image.projectId },
+      },
+    });
+
+    const isMediumShared = otherImages.some((img: any) => extractUrl(img.medium) === mediumUrl);
+    const isRawShared = otherImages.some((img: any) => extractUrl(img.raw) === rawUrl);
+
+    const getS3KeyOrLocalPath = (url: string | null) => {
       if (!url) return null;
       try {
-        const pathname = new URL(url).pathname;
-        return path.join(process.cwd(), pathname);
+        const parsedUrl = new URL(url);
+        const endpoint = process.env.S3_PUBLIC_ENDPOINT || 'web.garage.localhost';
+        if (parsedUrl.hostname.includes(endpoint)) {
+          const pathname = parsedUrl.pathname;
+          const key = pathname.startsWith('/') ? pathname.substring(1) : pathname;
+          return { type: 's3', value: key };
+        } else {
+          const pathname = parsedUrl.pathname;
+          return { type: 'local', value: path.join(process.cwd(), pathname) };
+        }
       } catch {
         const cleanPath = url.startsWith('/') ? url.substring(1) : url;
-        return path.join(process.cwd(), cleanPath);
+        return { type: 'local', value: path.join(process.cwd(), cleanPath) };
       }
     };
 
-    const paths = [getLocalPath(mediumUrl), getLocalPath(rawUrl)].filter(Boolean) as string[];
+    const targets = [];
+    if (mediumUrl && !isMediumShared) {
+      targets.push(getS3KeyOrLocalPath(mediumUrl));
+    }
+    if (rawUrl && !isRawShared) {
+      targets.push(getS3KeyOrLocalPath(rawUrl));
+    }
 
-    for (const p of paths) {
-      await fs.unlink(p).catch(() => undefined);
+    const cleanTargets = targets.filter(Boolean) as {
+      type: string;
+      value: string;
+    }[];
+
+    for (const target of cleanTargets) {
+      if (target.type === 's3') {
+        await this.documentsService.deleteFile(target.value).catch(() => undefined);
+      } else {
+        await fs.unlink(target.value).catch(() => undefined);
+      }
     }
   }
 
@@ -50,6 +84,17 @@ export class ProjectsService {
    */
   async getProjects() {
     return await this.prisma.project.findMany({
+      include: { image: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Fetches projects filtered by status, ordered by createdAt descending
+   */
+  async getProjectsByStatus(status: ProjectStatus) {
+    return await this.prisma.project.findMany({
+      where: { status },
       include: { image: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -124,6 +169,17 @@ export class ProjectsService {
 
     const { image, ...projectData } = dto;
 
+    // Handle slug change when switching status to archived
+    if (projectData.status === ProjectStatus.archived && existing.status !== ProjectStatus.archived) {
+      const baseSlug = projectData.slug || existing.slug;
+      const archivedSuffix = `-${id}-archived`;
+      if (!baseSlug.endsWith(archivedSuffix)) {
+        projectData.slug = `${baseSlug}${archivedSuffix}`;
+      } else {
+        projectData.slug = baseSlug;
+      }
+    }
+
     // Handle image cleanup and updates
     let imageUpdateAction: any = undefined;
 
@@ -178,6 +234,10 @@ export class ProjectsService {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
 
+    if (project.status !== ProjectStatus.archived) {
+      throw new BadRequestException('Only archived projects can be deleted');
+    }
+
     if (project.image) {
       await this.cleanupFiles(project.image);
     }
@@ -204,9 +264,9 @@ export class ProjectsService {
   }
 
   /**
-   * Processes a uploaded banner image, resizes, and saves WebP versions
+   * Processes an uploaded banner image, resizes, and saves WebP versions to Garage S3
    */
-  async uploadImage(file: Express.Multer.File, apiBaseUrl: string) {
+  async uploadImage(file: Express.Multer.File, identifier?: string) {
     const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     if (!VALID_FILE_TYPES.includes(file.mimetype)) {
       throw new BadRequestException('Format non supporté. Utilisez JPG, PNG ou WebP.');
@@ -217,32 +277,30 @@ export class ProjectsService {
       throw new BadRequestException('Fichier trop lourd (max 5MB).');
     }
 
-    const timestamp = Date.now();
-    const storageDir = path.join(process.cwd(), 'uploads', 'projects');
-    await fs.mkdir(storageDir, { recursive: true });
+    const idKey = identifier || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-    const mediumFilename = `project-${timestamp}-medium.webp`;
-    const rawFilename = `project-${timestamp}-raw.webp`;
+    const mediumFilename = `projects/project-${idKey}-medium.webp`;
+    const rawFilename = `projects/project-${idKey}-raw.webp`;
 
-    const mediumPath = path.join(storageDir, mediumFilename);
-    const rawPath = path.join(storageDir, rawFilename);
-
-    await Promise.all([
-      sharp(file.buffer).resize(1200, 800, { fit: 'cover' }).toFormat('webp', { quality: 80 }).toFile(mediumPath),
-      sharp(file.buffer).toFormat('webp', { quality: 90 }).toFile(rawPath),
+    const [mediumBuffer, rawBuffer] = await Promise.all([
+      sharp(file.buffer).resize(1200, 800, { fit: 'cover' }).toFormat('webp', { quality: 80 }).toBuffer(),
+      sharp(file.buffer).toFormat('webp', { quality: 90 }).toBuffer(),
     ]);
 
-    const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+    const [mediumUrl, rawUrl] = await Promise.all([
+      this.documentsService.uploadFile(mediumFilename, mediumBuffer, 'image/webp'),
+      this.documentsService.uploadFile(rawFilename, rawBuffer, 'image/webp'),
+    ]);
 
     return {
       success: true,
       urls: {
         medium: {
-          url: `${baseUrl}/uploads/projects/${mediumFilename}`,
+          url: mediumUrl,
           alt: '',
         },
         raw: {
-          url: `${baseUrl}/uploads/projects/${rawFilename}`,
+          url: rawUrl,
           alt: '',
         },
       },

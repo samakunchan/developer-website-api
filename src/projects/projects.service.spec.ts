@@ -3,6 +3,12 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProjectCategory, ProjectStatus } from '@prisma/client';
+import { DocumentsService } from '../documents/documents.service';
+
+// Mock minio
+jest.mock('minio', () => ({
+  Client: jest.fn().mockImplementation(() => ({})),
+}));
 
 // Mock sharp and fs
 jest.mock('sharp', () => {
@@ -10,6 +16,7 @@ jest.mock('sharp', () => {
     resize: jest.fn().mockReturnThis(),
     toFormat: jest.fn().mockReturnThis(),
     toFile: jest.fn().mockResolvedValue({}),
+    toBuffer: jest.fn().mockResolvedValue(Buffer.from([1, 2, 3])),
   }));
 });
 
@@ -68,8 +75,18 @@ describe('ProjectsService', () => {
               delete: jest.fn().mockResolvedValue(mockProject),
             },
             projectImage: {
+              findMany: jest.fn().mockResolvedValue([]),
               delete: jest.fn().mockResolvedValue({}),
             },
+          },
+        },
+        {
+          provide: DocumentsService,
+          useValue: {
+            uploadFile: jest
+              .fn()
+              .mockImplementation((key) => Promise.resolve(`http://papanguesoft.web.garage.localhost:3902/${key}`)),
+            deleteFile: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
@@ -87,6 +104,18 @@ describe('ProjectsService', () => {
     it('should return all projects', async () => {
       const result = await service.getProjects();
       expect(prisma.project.findMany).toHaveBeenCalledWith({
+        include: { image: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(result).toEqual([mockProject]);
+    });
+  });
+
+  describe('getProjectsByStatus', () => {
+    it('should return projects filtered by status', async () => {
+      const result = await service.getProjectsByStatus(ProjectStatus.draft);
+      expect(prisma.project.findMany).toHaveBeenCalledWith({
+        where: { status: ProjectStatus.draft },
         include: { image: true },
         orderBy: { createdAt: 'desc' },
       });
@@ -200,15 +229,70 @@ describe('ProjectsService', () => {
         where: { projectId: 1 },
       });
     });
+
+    it('should change slug to target-pattern if status is updated to archived', async () => {
+      const draftProject = { ...mockProject, status: ProjectStatus.draft, slug: 'my-cool-project' };
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(draftProject);
+
+      await service.updateProject(1, { status: ProjectStatus.archived });
+
+      expect(prisma.project.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          status: ProjectStatus.archived,
+          slug: 'my-cool-project-1-archived',
+        }),
+        include: { image: true },
+      });
+    });
+
+    it('should not double-append the archived suffix if slug already ends with it', async () => {
+      const draftProject = { ...mockProject, status: ProjectStatus.draft, slug: 'my-cool-project-1-archived' };
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(draftProject);
+
+      await service.updateProject(1, { status: ProjectStatus.archived });
+
+      expect(prisma.project.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          status: ProjectStatus.archived,
+          slug: 'my-cool-project-1-archived',
+        }),
+        include: { image: true },
+      });
+    });
+
+    it('should not change slug to archived pattern if status is not changed to archived', async () => {
+      const draftProject = { ...mockProject, status: ProjectStatus.draft, slug: 'my-cool-project' };
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(draftProject);
+
+      await service.updateProject(1, { status: ProjectStatus.published });
+
+      expect(prisma.project.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          status: ProjectStatus.published,
+        }),
+        include: { image: true },
+      });
+    });
   });
 
   describe('deleteProject', () => {
-    it('should delete project and handle image cleanup', async () => {
+    it('should delete project if its status is archived', async () => {
+      const archivedProject = { ...mockProject, status: ProjectStatus.archived };
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(archivedProject);
       const result = await service.deleteProject(1);
       expect(prisma.project.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
       expect(result).toEqual(mockProject);
+    });
+
+    it('should throw BadRequestException if project status is not archived', async () => {
+      const draftProject = { ...mockProject, status: ProjectStatus.draft };
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValueOnce(draftProject);
+      await expect(service.deleteProject(1)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException if project to delete is not found', async () => {
@@ -223,6 +307,7 @@ describe('ProjectsService', () => {
       expect(prisma.project.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { isFeatured: !mockProject.isFeatured },
+        include: { image: true },
       });
       expect(result).toEqual(mockProject);
     });
@@ -236,7 +321,7 @@ describe('ProjectsService', () => {
         buffer: Buffer.from([]),
       } as Express.Multer.File;
 
-      await expect(service.uploadImage(file, 'http://localhost:3002')).rejects.toThrow(BadRequestException);
+      await expect(service.uploadImage(file)).rejects.toThrow(BadRequestException);
     });
 
     it('should reject files larger than 5MB', async () => {
@@ -246,7 +331,7 @@ describe('ProjectsService', () => {
         buffer: Buffer.from([]),
       } as Express.Multer.File;
 
-      await expect(service.uploadImage(file, 'http://localhost:3002')).rejects.toThrow(BadRequestException);
+      await expect(service.uploadImage(file)).rejects.toThrow(BadRequestException);
     });
 
     it('should process and return image urls', async () => {
@@ -256,10 +341,25 @@ describe('ProjectsService', () => {
         buffer: Buffer.from([1, 2, 3]),
       } as Express.Multer.File;
 
-      const result = await service.uploadImage(file, 'http://localhost:3002');
+      const result = await service.uploadImage(file);
       expect(result.success).toBe(true);
-      expect(result.urls.medium.url).toContain('/uploads/projects/');
-      expect(result.urls.raw.url).toContain('/uploads/projects/');
+      expect(result.urls.medium.url).toContain('papanguesoft.web.garage.localhost:3902/projects/project-temp-');
+      expect(result.urls.raw.url).toContain('papanguesoft.web.garage.localhost:3902/projects/project-temp-');
+    });
+
+    it('should process and return image urls using a custom identifier', async () => {
+      const file = {
+        mimetype: 'image/png',
+        size: 1 * 1024 * 1024,
+        buffer: Buffer.from([1, 2, 3]),
+      } as Express.Multer.File;
+
+      const result = await service.uploadImage(file, 'test-project-123');
+      expect(result.success).toBe(true);
+      expect(result.urls.medium.url).toContain(
+        'papanguesoft.web.garage.localhost:3902/projects/project-test-project-123-medium.webp',
+      );
+      expect(result.urls.raw.url).toContain('papanguesoft.web.garage.localhost:3902/projects/project-test-project-123-raw.webp');
     });
   });
 });

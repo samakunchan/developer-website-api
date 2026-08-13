@@ -46,11 +46,33 @@ export class DocumentsService implements OnModuleInit {
     }
   }
 
-  async uploadDocument(file: Express.Multer.File): Promise<{ success: boolean; url: string; name: string }> {
+  /**
+   * High-level upload method designed specifically for Multer uploads via HTTP endpoints.
+   * Extracts and sanitizes the original client filename, prepends a timestamp to avoid collisions,
+   * handles folders, and returns a structured response matching the document schema.
+   *
+   * @param file Express.Multer.File object from client request
+   * @param path Optional directory/prefix path in S3 (defaults to extracting from original name or empty)
+   */
+  async uploadDocument(file: Express.Multer.File, path?: string): Promise<{ success: boolean; url: string; name: string }> {
     const timestamp = Date.now();
-    // Replace spaces and special characters with underscore
-    const cleanOriginalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const objectName = `${timestamp}-${cleanOriginalName}`;
+
+    // Extract folder path if present in originalname or passed explicitly
+    const lastSlash = file.originalname.lastIndexOf('/');
+    let folderPath = path || '';
+    let fileName = file.originalname;
+    if (lastSlash !== -1) {
+      folderPath = folderPath || file.originalname.substring(0, lastSlash + 1);
+      fileName = file.originalname.substring(lastSlash + 1);
+    }
+
+    if (folderPath && !folderPath.endsWith('/')) {
+      folderPath = `${folderPath}/`;
+    }
+
+    const cleanFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const cleanFolderPath = folderPath.replace(/[^a-zA-Z0-9./-]/g, '_');
+    const objectName = `${cleanFolderPath}${timestamp}-${cleanFileName}`;
 
     try {
       await this.minioClient.putObject(this.bucketName, objectName, file.buffer, file.size, { 'Content-Type': file.mimetype });
@@ -112,6 +134,32 @@ export class DocumentsService implements OnModuleInit {
       return { success: true };
     } catch (err: any) {
       throw new InternalServerErrorException(`Failed to delete document from S3: ${err.message}`);
+    }
+  }
+
+  /**
+   * Low-level upload method designed for generic programmatic file uploads.
+   * Unlike `uploadDocument`, this accepts raw in-memory Buffers (e.g. processed image buffers from sharp)
+   * and uploads them directly to a custom, specific S3 key path.
+   *
+   * @param key Fully structured target S3 key (e.g. 'avatars/avatar-123-tiny.webp')
+   * @param buffer Raw file Buffer
+   * @param mimetype Content-Type header value
+   */
+  async uploadFile(key: string, buffer: Buffer, mimetype: string): Promise<string> {
+    try {
+      await this.minioClient.putObject(this.bucketName, key, buffer, buffer.length, { 'Content-Type': mimetype });
+      return this.getPublicUrl(key);
+    } catch (err: any) {
+      throw new InternalServerErrorException(`Failed to upload file to S3: ${err.message}`);
+    }
+  }
+
+  async deleteFile(key: string): Promise<void> {
+    try {
+      await this.minioClient.removeObject(this.bucketName, key);
+    } catch (err: any) {
+      throw new InternalServerErrorException(`Failed to delete file from S3: ${err.message}`);
     }
   }
 }

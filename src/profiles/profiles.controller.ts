@@ -80,9 +80,6 @@ export class ProfilesController {
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
   async updateAvatar(@Req() req: Request & { user: { id: number } }, @UploadedFile() file: Express.Multer.File) {
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const apiBaseUrl = `${protocol}://${host}`;
-    return await this.profilesService.updateAvatar(req.user.id, file, apiBaseUrl);
+    return await this.profilesService.updateAvatar(req.user.id, file);
   }
 }
