@@ -6,10 +6,11 @@ import { UpdatePersonalInfoDto } from './dto/update-personal-info.dto';
 import * as sharp from 'sharp';
 import * as path from 'path';
 import { promises as fs } from 'fs';
+import { DocumentsService } from '../documents/documents.service';
 
 @Injectable()
 export class ProfilesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly documentsService: DocumentsService) {}
 
   /**
    * Fetches the profile data for the presentation (matching ADMIN_EMAIL).
@@ -141,7 +142,7 @@ export class ProfilesService {
   /**
    * Handles the profile photo upload, resizes/optimizes it via sharp, saves it to disk, and updates DB.
    */
-  async updateAvatar(userId: number, file: Express.Multer.File, apiBaseUrl: string) {
+  async updateAvatar(userId: number, file: Express.Multer.File) {
     const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     if (!VALID_FILE_TYPES.includes(file.mimetype)) {
       throw new BadRequestException('Format non supporté. Utilisez JPG, PNG ou WebP.');
@@ -158,49 +159,60 @@ export class ProfilesService {
     });
 
     const timestamp = Date.now();
-    const storageDir = path.join(process.cwd(), 'uploads', 'me');
-    await fs.mkdir(storageDir, { recursive: true });
 
-    // Clean up existing avatar files from filesystem
+    // Clean up existing avatar files from filesystem or S3
     if (currentUser?.image) {
       const oldImage = currentUser.image;
-      const getLocalPath = (url: string) => {
+      const getS3KeyOrLocalPath = (url: string) => {
         try {
-          const pathname = new URL(url).pathname;
-          return path.join(process.cwd(), pathname);
+          const parsedUrl = new URL(url);
+          const endpoint = process.env.S3_PUBLIC_ENDPOINT || 'web.garage.localhost';
+          if (parsedUrl.hostname.includes(endpoint)) {
+            const pathname = parsedUrl.pathname;
+            const key = pathname.startsWith('/') ? pathname.substring(1) : pathname;
+            return { type: 's3', value: key };
+          } else {
+            const pathname = parsedUrl.pathname;
+            return { type: 'local', value: path.join(process.cwd(), pathname) };
+          }
         } catch {
           // If already relative
           const cleanPath = url.startsWith('/') ? url.substring(1) : url;
-          return path.join(process.cwd(), cleanPath);
+          return { type: 'local', value: path.join(process.cwd(), cleanPath) };
         }
       };
 
-      const pathsToUnlink = [getLocalPath(oldImage.tiny), getLocalPath(oldImage.medium), getLocalPath(oldImage.raw)];
+      const targets = [oldImage.tiny, oldImage.medium, oldImage.raw].map(getS3KeyOrLocalPath);
 
-      for (const p of pathsToUnlink) {
-        await fs.unlink(p).catch(() => undefined);
+      for (const target of targets) {
+        if (target.type === 's3') {
+          await this.documentsService.deleteFile(target.value).catch(() => undefined);
+        } else {
+          await fs.unlink(target.value).catch(() => undefined);
+        }
       }
     }
 
-    const tinyFilename = `avatar-${userId}-${timestamp}-tiny.webp`;
-    const mediumFilename = `avatar-${userId}-${timestamp}-medium.webp`;
-    const rawFilename = `avatar-${userId}-${timestamp}-raw.webp`;
+    const tinyFilename = `avatars/avatar-${userId}-${timestamp}-tiny.webp`;
+    const mediumFilename = `avatars/avatar-${userId}-${timestamp}-medium.webp`;
+    const rawFilename = `avatars/avatar-${userId}-${timestamp}-raw.webp`;
 
-    const tinyPath = path.join(storageDir, tinyFilename);
-    const mediumPath = path.join(storageDir, mediumFilename);
-    const rawPath = path.join(storageDir, rawFilename);
-
-    await Promise.all([
-      sharp(file.buffer).resize(32, 32, { fit: 'cover' }).toFormat('webp').toFile(tinyPath),
-      sharp(file.buffer).resize(80, 80, { fit: 'cover' }).toFormat('webp').toFile(mediumPath),
-      sharp(file.buffer).toFormat('webp', { quality: 80 }).toFile(rawPath),
+    const [tinyBuffer, mediumBuffer, rawBuffer] = await Promise.all([
+      sharp(file.buffer).resize(32, 32, { fit: 'cover' }).toFormat('webp').toBuffer(),
+      sharp(file.buffer).resize(80, 80, { fit: 'cover' }).toFormat('webp').toBuffer(),
+      sharp(file.buffer).toFormat('webp', { quality: 80 }).toBuffer(),
     ]);
 
-    const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+    const [tinyUrl, mediumUrl, rawUrl] = await Promise.all([
+      this.documentsService.uploadFile(tinyFilename, tinyBuffer, 'image/webp'),
+      this.documentsService.uploadFile(mediumFilename, mediumBuffer, 'image/webp'),
+      this.documentsService.uploadFile(rawFilename, rawBuffer, 'image/webp'),
+    ]);
+
     const dbPaths = {
-      tiny: `${baseUrl}/uploads/me/${tinyFilename}`,
-      medium: `${baseUrl}/uploads/me/${mediumFilename}`,
-      raw: `${baseUrl}/uploads/me/${rawFilename}`,
+      tiny: tinyUrl,
+      medium: mediumUrl,
+      raw: rawUrl,
     };
 
     await this.prisma.user.update({

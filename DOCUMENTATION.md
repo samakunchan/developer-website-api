@@ -598,9 +598,9 @@ Public profile information formatted for portfolio rendering. Fetches details fo
     ],
     "image": {
       "id": 1,
-      "tiny": "http://localhost:3002/uploads/me/avatar-1-123456-tiny.webp",
-      "medium": "http://localhost:3002/uploads/me/avatar-1-123456-medium.webp",
-      "raw": "http://localhost:3002/uploads/me/avatar-1-123456-raw.webp",
+      "tiny": "http://papanguesoft.web.garage.localhost:3902/avatars/avatar-1-123456-tiny.webp",
+      "medium": "http://papanguesoft.web.garage.localhost:3902/avatars/avatar-1-123456-medium.webp",
+      "raw": "http://papanguesoft.web.garage.localhost:3902/avatars/avatar-1-123456-raw.webp",
       "userId": 1,
       "createdAt": "2026-06-11T08:13:27.000Z",
       "updatedAt": "2026-06-11T08:13:27.000Z"
@@ -779,7 +779,7 @@ Uses standard `multipart/form-data` with binary payload.
 
 ###### `POST /profiles/avatar`
 
-Uploads a profile picture, resizes it automatically to 3 sizes (tiny 32x32 WebP, medium 80x80 WebP, raw optimised WebP), and saves it to disk.
+Uploads a profile picture, resizes it automatically to 3 sizes (tiny 32x32 WebP, medium 80x80 WebP, raw optimised WebP), and saves it to Garage S3.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Content-Type**: `multipart/form-data`
@@ -791,9 +791,9 @@ Uploads a profile picture, resizes it automatically to 3 sizes (tiny 32x32 WebP,
   {
     "success": true,
     "urls": {
-      "tiny": "http://localhost:3002/uploads/me/avatar-1-123456-tiny.webp",
-      "medium": "http://localhost:3002/uploads/me/avatar-1-123456-medium.webp",
-      "raw": "http://localhost:3002/uploads/me/avatar-1-123456-raw.webp"
+      "tiny": "http://papanguesoft.web.garage.localhost:3902/avatars/avatar-1-123456-tiny.webp",
+      "medium": "http://papanguesoft.web.garage.localhost:3902/avatars/avatar-1-123456-medium.webp",
+      "raw": "http://papanguesoft.web.garage.localhost:3902/avatars/avatar-1-123456-raw.webp"
     }
   }
   ```
@@ -843,8 +843,8 @@ Fetches all projects ordered by creation date descending.
       "updatedAt": "2026-06-11T08:15:00.000Z",
       "image": {
         "id": 1,
-        "medium": { "url": "http://localhost:3002/uploads/projects/project-1-medium.webp", "alt": "" },
-        "raw": { "url": "http://localhost:3002/uploads/projects/project-1-raw.webp", "alt": "" },
+        "medium": { "url": "http://papanguesoft.web.garage.localhost:3902/projects/project-1-medium.webp", "alt": "" },
+        "raw": { "url": "http://papanguesoft.web.garage.localhost:3902/projects/project-1-raw.webp", "alt": "" },
         "projectId": 1,
         "createdAt": "2026-06-11T08:15:00.000Z",
         "updatedAt": "2026-06-11T08:15:00.000Z"
@@ -852,6 +852,15 @@ Fetches all projects ordered by creation date descending.
     }
   ]
   ```
+
+###### `GET /projects/status/:status`
+
+Fetches projects filtered by status (`draft`, `published`, `unpublished`, `archived`), ordered by creation date descending.
+
+- **Auth Requirement**: Public
+- **Route Params**: `status` (string, required)
+- **Response (200 OK)**:
+  *(Returns an array of Project objects matching the status)*
 
 ###### `GET /projects/:id`
 
@@ -945,6 +954,9 @@ Creates a new project.
 
 Updates a project fields.
 
+> [!NOTE]
+> If the project's status is updated to `archived` (and was not already `archived`), its slug will automatically be updated to match the pattern: `{base-slug}-{id}-archived`.
+
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Route Params**: `id` (int, required)
 - **Request Body**:
@@ -972,6 +984,9 @@ Toggles the `isFeatured` boolean status of a project.
 
 Deletes a project and its associated image files from storage.
 
+> [!IMPORTANT]
+> Deletion is only allowed if the project has the status `archived`. If the project is in any other status (e.g. `draft`, `published`, `unpublished`), this endpoint will return a `400 Bad Request` error.
+
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Route Params**: `id` (int, required)
 - **Response (200 OK)**:
@@ -994,10 +1009,12 @@ Uses standard `multipart/form-data` with binary payload.
 
 ###### `POST /projects/upload`
 
-Uploads a showcase banner image, resizes it (medium size 1200x800, raw optimized), saves it to disk and returns the server urls.
+Uploads a showcase banner image, resizes it (medium size 1200x800, raw optimized), saves it to Garage S3 and returns the S3 urls. Subsequent uploads with the same `identifier` overwrite the existing file on S3 instead of creating duplicates.
 
 - **Auth Requirement**: `ApiAuthGuard` + `AdminGuard`
 - **Content-Type**: `multipart/form-data`
+- **Query Params**:
+  - `identifier` (string, optional) -> Project ID or temporary form session UUID to use as key (enables S3 overwrites).
 - **Request Body**:
   - `file` (Binary Image File, <= 5MB, formats: JPEG, PNG, WebP)
 - **Response (200 OK)**:
@@ -1007,11 +1024,11 @@ Uploads a showcase banner image, resizes it (medium size 1200x800, raw optimized
     "success": true,
     "urls": {
       "medium": {
-        "url": "http://localhost:3002/uploads/projects/project-123456-medium.webp",
+        "url": "http://papanguesoft.web.garage.localhost:3902/projects/project-123456-medium.webp",
         "alt": ""
       },
       "raw": {
-        "url": "http://localhost:3002/uploads/projects/project-123456-raw.webp",
+        "url": "http://papanguesoft.web.garage.localhost:3902/projects/project-123456-raw.webp",
         "alt": ""
       }
     }
@@ -1183,7 +1200,7 @@ Retrieves a list of all documents stored in the S3 bucket, sorted by their last 
 - **Auth Requirement**: Public (None)
 - **Response (200 OK)**:
 
-  ```json
+  ```jsonhiv
   [
     {
       "name": "1784225727335-F2100018.pdf",

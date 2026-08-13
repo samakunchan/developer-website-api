@@ -192,4 +192,41 @@ describe('DocumentsService', () => {
       await expect(service.deleteDocument('doc.pdf')).rejects.toThrow(InternalServerErrorException);
     });
   });
+
+  describe('uploadFile', () => {
+    const mockBuffer = Buffer.from('test buffer');
+
+    it('should upload a file and return its public URL', async () => {
+      mockClient.putObject.mockResolvedValue(undefined);
+
+      const result = await service.uploadFile('test-key.txt', mockBuffer, 'text/plain');
+
+      expect(mockClient.putObject).toHaveBeenCalledWith('papanguesoft', 'test-key.txt', mockBuffer, mockBuffer.length, {
+        'Content-Type': 'text/plain',
+      });
+      expect(result).toContain('papanguesoft.web.garage.localhost:3902/test-key.txt');
+    });
+
+    it('should throw InternalServerErrorException if putObject fails', async () => {
+      mockClient.putObject.mockRejectedValue(new Error('Upload failed'));
+
+      await expect(service.uploadFile('test-key.txt', mockBuffer, 'text/plain')).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+
+  describe('deleteFile', () => {
+    it('should remove object successfully', async () => {
+      mockClient.removeObject.mockResolvedValue(undefined);
+
+      await expect(service.deleteFile('test-key.txt')).resolves.not.toThrow();
+
+      expect(mockClient.removeObject).toHaveBeenCalledWith('papanguesoft', 'test-key.txt');
+    });
+
+    it('should throw InternalServerErrorException if removeObject fails', async () => {
+      mockClient.removeObject.mockRejectedValue(new Error('Delete failed'));
+
+      await expect(service.deleteFile('test-key.txt')).rejects.toThrow(InternalServerErrorException);
+    });
+  });
 });
