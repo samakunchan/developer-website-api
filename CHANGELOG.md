@@ -1,6 +1,59 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.10.0 - 14/08/2026
+
+### Added
+
+- **Documents Module**:
+  - Added new low-level helper methods `uploadFile` and `deleteFile` to `DocumentsService` for raw buffer uploads and S3 object deletions.
+- **Unit Tests**:
+  - Added test coverage in `documents.service.spec.ts` for the new `uploadFile` and `deleteFile` methods.
+  - Enhanced `projects.service.spec.ts` to test S3 uploading, including custom identifiers and mocked S3 responses.
+
+### Changed
+
+- **Profiles Module**:
+  - Migrated avatar uploads (`updateAvatar`) from the local filesystem to Garage S3.
+  - Resized and transformed images are now generated as raw in-memory buffers using `sharp` instead of writing temporary files to disk.
+  - Implemented hybrid avatar cleanup support: deletes old avatar files from S3 if S3-hosted, or unlinks them from the local filesystem if local-hosted.
+  - Removed unused `apiBaseUrl` parameter from controller and service.
+- **Projects Module**:
+  - Migrated portfolio project showcase banner uploads (`uploadImage`) from the local filesystem to Garage S3.
+  - Banner images are now processed as raw buffers using `sharp` and uploaded directly to S3.
+  - Refactored `cleanupFiles` to support mixed storage unlinking: S3 object deletion or local file unlinking, with safety checks to ensure shared images are not deleted.
+  - Support overwriting existing files in S3 using an optional `identifier` query parameter (such as project ID or form session UUID) to avoid creating duplicate/accumulated files on storage.
+  - Removed unused `apiBaseUrl` parameter from controller and service.
+- **Endpoint Documentation**:
+  - Updated `DOCUMENTATION.md` to reflect S3/Garage storage and S3 public URLs for both user profile avatars and portfolio project banner uploads.
+
+### Fixed
+
+- **Restore Image Deletion (API side)**:
+  - Modified the NestJS `cleanupFiles` method on the backend to verify if any other project is currently sharing the same image URLs (e.g. during project restoration where a newly duplicated project references the original S3 URLs) before executing permanent S3 or local file deletion.
+  - Refactored backend tests in `projects.service.spec.ts` and `projects.controller.spec.ts` to mock and assert the new lookup calls successfully.
+
+## 🚀 0.9.0 - 22/07/2026
+
+### Added
+
+- **Projects Feature Module**:
+  - Added new public route `GET /projects/status/:status` to retrieve projects filtered by status, validated using `ParseEnumPipe`.
+- **Unit Tests**:
+  - Added unit tests for new status-based project routes and deletion validation checks.
+
+### Changed
+
+- **Projects Feature Module**:
+  - Restricted project deletion (`DELETE /projects/:id`) to only allow deleting projects with status `archived`. Any other status throws a `400 Bad Request` error.
+  - Automatically rename a project's slug to follow the pattern `{base-slug}-{id}-archived` when its status is switched to `archived`.
+- **Endpoint Documentation**:
+  - Updated `DOCUMENTATION.md` to document the new `GET /projects/status/:status` route, the status constraint on project deletion, and the automatic slug renaming behavior.
+
+### Fixed
+
+- N/A
+
 ## 🚀 0.8.0 - 22/07/2026
 
 ### Added
