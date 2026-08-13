@@ -7,10 +7,12 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  ParseEnumPipe,
   Post,
   Put,
   Patch,
   Req,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -22,6 +24,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
+import { ProjectStatus } from '@prisma/client';
 
 @Controller('projects')
 export class ProjectsController {
@@ -30,6 +33,11 @@ export class ProjectsController {
   @Get()
   async getProjects() {
     return await this.projectsService.getProjects();
+  }
+
+  @Get('status/:status')
+  async getProjectsByStatus(@Param('status', new ParseEnumPipe(ProjectStatus)) status: ProjectStatus) {
+    return await this.projectsService.getProjectsByStatus(status);
   }
 
   @Get(':id')
@@ -75,11 +83,7 @@ export class ProjectsController {
   @UseGuards(ApiAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.OK)
-  async uploadImage(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
-    const protocol: string = req.protocol;
-    const host: string | undefined = req.get('host');
-
-    const apiBaseUrl: string = host ? `${protocol}://${host}` : `${protocol}://localhost`;
-    return await this.projectsService.uploadImage(file, apiBaseUrl);
+  async uploadImage(@UploadedFile() file: Express.Multer.File, @Query('identifier') identifier?: string) {
+    return await this.projectsService.uploadImage(file, identifier);
   }
 }

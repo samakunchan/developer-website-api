@@ -30,5 +30,5 @@ services:
 
 networks:
   developer-website-network:
-    name: developer-website-dev_default
+    name: developer-website-db-dev_default
     external: true

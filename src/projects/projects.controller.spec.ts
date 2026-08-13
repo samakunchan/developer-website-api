@@ -55,6 +55,7 @@ describe('ProjectsController', () => {
           provide: ProjectsService,
           useValue: {
             getProjects: jest.fn().mockResolvedValue([mockProject]),
+            getProjectsByStatus: jest.fn().mockResolvedValue([mockProject]),
             getProjectById: jest.fn().mockResolvedValue(mockProject),
             getProjectBySlug: jest.fn().mockResolvedValue(mockProject),
             createProject: jest.fn().mockResolvedValue(mockProject),
@@ -95,6 +96,14 @@ describe('ProjectsController', () => {
     it('should call service.getProjects', async () => {
       const result = await controller.getProjects();
       expect(service.getProjects).toHaveBeenCalled();
+      expect(result).toEqual([mockProject]);
+    });
+  });
+
+  describe('getProjectsByStatus', () => {
+    it('should call service.getProjectsByStatus', async () => {
+      const result = await controller.getProjectsByStatus(ProjectStatus.draft);
+      expect(service.getProjectsByStatus).toHaveBeenCalledWith(ProjectStatus.draft);
       expect(result).toEqual([mockProject]);
     });
   });
@@ -162,15 +171,10 @@ describe('ProjectsController', () => {
   });
 
   describe('uploadImage', () => {
-    it('should call service.uploadImage with file and protocol baseUrl', async () => {
+    it('should call service.uploadImage with file and identifier', async () => {
       const file = {} as Express.Multer.File;
-      const req = {
-        protocol: 'http',
-        get: jest.fn().mockReturnValue('localhost'),
-      } as any;
-
-      const result = await controller.uploadImage(req, file);
-      expect(service.uploadImage).toHaveBeenCalledWith(file, 'http://localhost');
+      const result = await controller.uploadImage(file, 'test-id');
+      expect(service.uploadImage).toHaveBeenCalledWith(file, 'test-id');
       expect(result.success).toBe(true);
     });
   });
