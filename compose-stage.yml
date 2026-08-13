@@ -26,5 +26,5 @@ services:
 
 networks:
   developer-website-network:
-    name: developer-website-stage_default
+    name: developer-website-db-stage_default
     external: true
