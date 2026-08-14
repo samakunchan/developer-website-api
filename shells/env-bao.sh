@@ -21,6 +21,9 @@ if [ -f ".env" ]; then
     if [ -z "$BAO_SECRET_ID" ]; then
         BAO_SECRET_ID=$(grep -E "^BAO_SECRET_ID=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
+    if [ -z "$BAO_ADDR_STAGE_PROD" ]; then
+        BAO_ADDR_STAGE_PROD=$(grep -E "^BAO_ADDR_STAGE_PROD=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
+    fi
 fi
 
 if [ -z "$BAO_ROLE_ID" ] || [ -z "$BAO_SECRET_ID" ]; then
@@ -37,20 +40,25 @@ elif curl -s --connect-timeout 2 http://localhost:8200/v1/sys/health >/dev/null 
     BAO_ADDR="http://localhost:8200"
 elif [ "$ENV" = "prod" ] || [ "$ENV" = "stage" ]; then
     # Running locally but targeting production/staging (VPS IP)
-    BAO_ADDR="$process.env.BAO_ADDR_STAGE_PROD"
+    BAO_ADDR="$BAO_ADDR_STAGE_PROD"
 else
     # Running locally for local development
     BAO_ADDR="http://localhost:8200"
 fi
 # 2. Login and Fetch Secrets
-LOGIN_RES=$(curl -s -X POST -H "Content-Type: application/json" \
+LOGIN_RES=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
   -d "{\"role_id\":\"$BAO_ROLE_ID\", \"secret_id\":\"$BAO_SECRET_ID\"}" \
   "$BAO_ADDR/v1/auth/approle/login")
 
-TOKEN=$(echo $LOGIN_RES | jq -r .auth.client_token)
+HTTP_STATUS=$(echo "$LOGIN_RES" | grep "HTTP_STATUS" | cut -d':' -f2)
+BODY=$(echo "$LOGIN_RES" | grep -v "HTTP_STATUS")
+TOKEN=$(echo "$BODY" | jq -r .auth.client_token 2>/dev/null)
 
 if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
   echo "❌ Error: Failed to login to OpenBao."
+  echo "   Address attempted: $BAO_ADDR"
+  echo "   HTTP Status: $HTTP_STATUS"
+  echo "   Response: $BODY"
   return 1 2>/dev/null || exit 1
 fi
 
