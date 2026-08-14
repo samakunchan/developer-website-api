@@ -24,6 +24,9 @@ if [ -f ".env" ]; then
     if [ -z "$BAO_ADDR_STAGE_PROD" ]; then
         BAO_ADDR_STAGE_PROD=$(grep -E "^BAO_ADDR_STAGE_PROD=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
+    if [ -z "$BAO_ADDR" ]; then
+        BAO_ADDR=$(grep -E "^BAO_ADDR=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
+    fi
 fi
 
 if [ -z "$BAO_ROLE_ID" ] || [ -z "$BAO_SECRET_ID" ]; then
@@ -34,16 +37,13 @@ fi
 # Adjust BAO_ADDR based on environment and execution context
 if [ "$DOCKER" = "true" ]; then
     # Inside Docker on the VPS (same network)
-    BAO_ADDR="http://openbao:8200"
-elif curl -s --connect-timeout 2 http://localhost:8200/v1/sys/health >/dev/null 2>&1; then
-    # If OpenBao is running and accessible on localhost (e.g. running on the VPS itself, or local dev machine)
-    BAO_ADDR="http://localhost:8200"
+    BAO_ADDR=${BAO_ADDR:-"http://openbao:8200"}
 elif [ "$ENV" = "prod" ] || [ "$ENV" = "stage" ]; then
-    # Running locally but targeting production/staging (VPS IP)
-    BAO_ADDR="$BAO_ADDR_STAGE_PROD"
+    # Running on the host targeting production/staging
+    BAO_ADDR=${BAO_ADDR_STAGE_PROD:-"http://localhost:8200"}
 else
     # Running locally for local development
-    BAO_ADDR="http://localhost:8200"
+    BAO_ADDR=${BAO_ADDR:-"http://localhost:8200"}
 fi
 # 2. Login and Fetch Secrets
 LOGIN_RES=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
