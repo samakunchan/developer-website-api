@@ -12,6 +12,8 @@ services:
     build:
       target: runner
     restart: always
+    ports:
+      - '3002:3002'
     environment:
       - NODE_ENV=production
       - BAO_ADDR=http://openbao:8200
