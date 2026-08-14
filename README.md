@@ -1,70 +1,208 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Developer Website API
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[![Nest Logo](https://nestjs.com/img/logo-small.svg)](https://nestjs.com/)
 
-## Description
+**Developer Website API** is a progressive NestJS-based API running on Node.js (v22), backed by a PostgreSQL database with vector extensions (via Prisma), integrated with OpenBao for secret management, and utilising Garage S3 (via MinIO SDK) for file storage.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Installation
+## 🛠️ Technology Stack
+
+- **Framework**: [NestJS](https://nestjs.com/) (TypeScript)
+- **Database**: PostgreSQL (with pgvector support)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **Secret Management**: [OpenBao](https://openbao.org/) (AppRole authentication)
+- **Storage**: Garage S3 (integrated via `minio` client)
+- **Package Manager**: Yarn
+
+---
+
+## 📋 Prerequisites
+
+Before setting up the project, make sure you have the following installed and running:
+
+- **Node.js** (v22.x recommended)
+- **Yarn** (strictly required; do not use `npm` or `npx` in this project)
+- **Docker & Docker Compose** (for containerized environments)
+- **Database & Secret Infrastructure**: The PostgreSQL database and OpenBao service run in a separate infrastructure repository/compose network (`developer-website-db-*`). Ensure that project is running before starting the API in containerized modes.
+
+---
+
+## 🔒 Environment Setup
+
+1. Copy the example environment template file to create your `.env` file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Configure your OpenBao AppRole credentials in the `.env` file:
+   - `BAO_ADDR`: The local address of OpenBao (e.g. `http://localhost:8200` or `http://host.docker.internal:8200` inside Docker).
+   - `BAO_ROLE_ID`: Your AppRole Role ID.
+   - `BAO_SECRET_ID`: Your AppRole Secret ID.
+   - `BAO_PATH`: The secret storage path in OpenBao (e.g., `secret/data/developer-website-api`).
+   - `BAO_ADDR_STAGE_PROD`: Address of the staging/production OpenBao instance when running local migrations/debugging targeting those environments.
+
+> [!NOTE]
+> All other application secrets (including database credentials, JWT keys, and S3 credentials) are fetched dynamically from OpenBao at runtime when the application starts, and injected into `process.env`.
+
+---
+
+## 📥 Installation
+
+Install the project dependencies using Yarn:
 
 ```bash
 yarn install
 ```
 
-## Running the app
+---
+
+## 💻 Local Development (Standalone/Bare Metal)
+
+Ensure that your local database and OpenBao service are running on your host machine.
+
+### 1. Generate Prisma Client
+
+Generate the local Prisma client based on the database schema:
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+yarn prisma generate
 ```
 
-## Test
+### 2. Apply Database Schema
+
+Push the schema changes directly to your local development database:
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+yarn prisma db push
 ```
 
-## Support
+### 3. Run the Application
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Start the development server with hot-reload enabled. This command automatically fetches vault secrets and sets the correct database connection URL locally via `shells/env-bao.sh`:
 
-## Stay in touch
+```bash
+yarn start:dev
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Other start commands:
 
-## License
+```bash
+# Standard start
+yarn start
 
-Nest is [MIT licensed](LICENSE).
+# Debug mode with watch
+yarn start:debug
+
+# Production build preview (assumes dist/ folder exists)
+yarn start:prod
+```
+
+---
+
+## 🐋 Running with Docker (Containerized Environments)
+
+The project includes script helpers under `./shells` to manage containerized lifecycles. The container builds are structured into multiple targets (such as `dev` and `runner` for production/staging).
+
+> [!IMPORTANT]
+> The Docker configurations expect database containers to be running in external networks managed by the base infrastructure project (e.g., `developer-website-db-dev_default`, `developer-website-db-stage_default`).
+
+### 1. Development Environment (`dev`)
+
+Runs the NestJS application in watch mode inside a Docker container. Host files are bind-mounted, and local changes trigger a restart.
+
+- **Port Mapping**: `3002:3002`
+- **Database Link**: Connects to `developer-website-db` (linked as `postgresdb` via network `developer-website-db-dev_default`)
+- **Commands**:
+
+  ```bash
+  # Start the development container
+  ./shells/start-app.sh dev
+
+  # Stop and clean dev containers & volume caches
+  ./shells/stop-app.sh dev
+
+  # Rebuild and restart the dev container
+  ./shells/docker-build-dev.sh
+  ```
+
+### 2. Staging Environment (`stage`)
+
+Runs the production build of the application in staging configuration.
+
+- **Port Mapping**: `3003:3002`
+- **Database Link**: Connects to `developer-website-db-stage` (linked as `postgresdb` via network `developer-website-db-stage_default`)
+- **Commands**:
+
+  ```bash
+  # Start the staging container
+  ./shells/start-app.sh stage
+
+  # Stop and clean staging containers & volumes
+  ./shells/stop-app.sh stage
+
+  # Rebuild and restart the staging container
+  ./shells/docker-build-stage.sh
+  ```
+
+### 3. Production Environment (`prod`)
+
+Runs the production build of the application optimized for a VPS setup with a reverse proxy.
+
+- **Port Mapping**: Bound to `default` and `nginx-proxy-network` (used for Nginx Proxy Manager)
+- **Database Link**: Connects to `developer-website-db-prod` (linked as `postgresdb`)
+- **Commands**:
+
+  ```bash
+  # Start the production container
+  ./shells/start-app.sh prod
+
+  # Stop and clean production containers & volumes
+  ./shells/stop-app.sh prod
+
+  # Rebuild and restart the production container
+  ./shells/docker-build-prod.sh
+  ```
+
+---
+
+## 🧪 Testing
+
+The codebase includes unit and integration tests managed with Jest.
+
+```bash
+# Run unit tests
+yarn test
+
+# Run unit tests in watch mode
+yarn test:watch
+
+# Run e2e tests
+yarn test:e2e
+
+# Check test coverage
+yarn test:cov
+```
+
+---
+
+## 🧹 Code Quality
+
+Make sure your code complies with linting and styling configurations before committing:
+
+```bash
+# Format code using Prettier
+yarn format
+
+# Lint code using ESLint
+yarn lint
+```
+
+---
+
+## 📝 Troubleshooting & Logging
+
+- **Local Error Log**: Unhandled runtime exceptions and internal stack traces are captured by a global filter and appended to [api_error_logs.txt](file:///Users/samakunchan/Desktop/developpement/trainings/tanstack-projects/developer-website-api/api_error_logs.txt) at the root of the project. This file is git-ignored.
+- **OpenBao Connections**: If the app fails to start with `Failed to login to OpenBao`, verify your `.env` credentials and ensure the OpenBao server is reachable (e.g. at port `8200`).
+- **Prisma Client Issues**: If you encounter missing database schema types, regenerate the client manually using `yarn prisma generate`.

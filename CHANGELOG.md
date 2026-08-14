@@ -33,6 +33,8 @@
   - Modified the NestJS `cleanupFiles` method on the backend to verify if any other project is currently sharing the same image URLs (e.g. during project restoration where a newly duplicated project references the original S3 URLs) before executing permanent S3 or local file deletion.
   - Refactored backend tests in `projects.service.spec.ts` and `projects.controller.spec.ts` to mock and assert the new lookup calls successfully.
 
+----
+
 ## 🚀 0.9.0 - 22/07/2026
 
 ### Added
@@ -53,6 +55,8 @@
 ### Fixed
 
 - N/A
+
+----
 
 ## 🚀 0.8.0 - 22/07/2026
 
@@ -79,6 +83,8 @@
 
 - The strategy has been updated for `developer-website-api/shells/docker-entrypoint-prod.sh` and `developer-website-api/shells/docker-entrypoint-stage.sh`. Now we have a distinct project to manage database and seed.
 
+----
+
 ## 🚀 0.7.1 - 18/06/2026
 
 ### Added
@@ -94,6 +100,8 @@
 
 - **Legal Documents Settings Feature**:
   - Expanded `LexicalNodeDto` inside `UpdateLegalDocumentDto` to support missing Lexical list and heading node properties (`tag`, `listType`, `start`, and `value`) to match the client-side rich-text editor data schema.
+
+----
 
 ## 🚀 0.7.0 - 18/06/2026
 
@@ -116,6 +124,8 @@
 ### Fixed
 
 - N/A
+
+----
 
 ## 🚀 0.6.0 - 11/06/2026
 
@@ -147,6 +157,8 @@
 
 - N/A
 
+----
+
 ## 🚀 0.5.0 - 11/06/2026
 
 ### Added
@@ -167,6 +179,8 @@
 ### Fixed
 
 - N/A
+
+----
 
 ## 🚀 0.4.0 - 10/06/2026
 
@@ -200,6 +214,8 @@
 
 - N/A
 
+----
+
 ## 🚀 0.3.0 - 10/06/2026
 
 ### Added
@@ -232,6 +248,8 @@
 - **Unused Shell Scripts**:
   - Deleted obsolete Prisma helper shell scripts from the `shells` directory.
 
+----
+
 ## 🚀 0.2.0 - 09/06/2026
 
 ### Added
@@ -254,6 +272,8 @@
 ### Fixed
 
 - N/A
+
+----
 
 ## 🚀 0.1.0 - 08/06/2026
 
