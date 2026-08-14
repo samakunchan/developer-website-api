@@ -27,17 +27,27 @@ import { ProfilesService } from './profiles.service';
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
+  /**
+   * Fetches the profile data for the presentation (matching ADMIN_EMAIL).
+   * @deprecated Use getProfile(id) instead. I have account/register now.
+   */
   @Get('presentation')
   async getProfilePresentation() {
     return await this.profilesService.getProfilePresentation();
   }
 
+  /**
+   * Fetches the complete profile data for a specific user.
+   */
   @Get()
   @UseGuards(ApiAuthGuard, AdminGuard)
   async getProfile(@Req() req: Request & { user: { id: number } }) {
     return await this.profilesService.getProfile(req.user.id);
   }
 
+  /**
+   * Updates personal information and user identity data.
+   */
   @Put('personal-info')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -45,6 +55,9 @@ export class ProfilesController {
     return await this.profilesService.updatePersonalInfo(req.user.id, body);
   }
 
+  /**
+   * Adds a new tech stack item.
+   */
   @Post('tech-stack')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -52,6 +65,9 @@ export class ProfilesController {
     return await this.profilesService.addTechStack(req.user.id, body);
   }
 
+  /**
+   * Removes a tech stack item.
+   */
   @Delete('tech-stack/:id')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -60,6 +76,9 @@ export class ProfilesController {
     return { success: true };
   }
 
+  /**
+   * Adds a new social link.
+   */
   @Post('social-link')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -67,6 +86,9 @@ export class ProfilesController {
     return await this.profilesService.addSocialLink(req.user.id, body);
   }
 
+  /**
+   * Removes a social link.
+   */
   @Delete('social-link/:id')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -75,6 +97,9 @@ export class ProfilesController {
     return { success: true };
   }
 
+  /**
+   * Updates the avatar.
+   */
   @Post('avatar')
   @UseGuards(ApiAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('file'))

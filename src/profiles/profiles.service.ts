@@ -14,10 +14,10 @@ export class ProfilesService {
 
   /**
    * Fetches the profile data for the presentation (matching ADMIN_EMAIL).
+   * @deprecated Use getProfile(id) instead. I have account/register now. I don't use this method anymore.
    */
   async getProfilePresentation() {
     const email = process.env.ADMIN_EMAIL;
-    console.log(email);
     if (!email) {
       throw new BadRequestException('ADMIN_EMAIL environment variable is not defined');
     }
