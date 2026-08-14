@@ -23,6 +23,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const constructorName = exception.constructor.name;
       if (constructorName === 'ThemeNotFoundException') {
         exceptionName = 'ThemeNotFoundException';
+      } else if (constructorName === 'NoMoreUserAcceptedException') {
+        exceptionName = 'NO_MORE_USER_ACCEPTED_EXCEPTION';
+        status = HttpStatus.BAD_REQUEST;
+        const resMsg =
+          typeof responseContent === 'object' && responseContent !== null ? (responseContent as any).message : responseContent;
+        message = Array.isArray(resMsg) ? resMsg.join(', ') : String(resMsg);
       } else if (typeof responseContent === 'object' && responseContent !== null) {
         const errorMsg = (responseContent as any).message;
         const messages = Array.isArray(errorMsg) ? errorMsg : [String(errorMsg)];
@@ -44,7 +50,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (exception instanceof Error) {
       console.log(exception);
       let customMessage = 'CUSTOM_MESSAGE_EXCEPTION';
-      if (exception.message.includes('this.prisma.user.findUnique()')) {
+      if (exception.message.includes('prisma.user.findUnique()')) {
         customMessage = 'UserNotFoundException';
       }
       exceptionName = customMessage || exception.name || exception.constructor.name;

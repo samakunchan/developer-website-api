@@ -283,6 +283,122 @@ Resets the password using a reset token.
 
 ---
 
+### 👤 Account (`/account`)
+
+The account sub-module handles registration of the primary administrator account and profile data retrieval.
+
+#### Register Admin Account
+
+##### DTO Models
+
+- `email` (string, required, format: email) -> The email address for the administrator.
+- `password` (string, required, minimum 8 characters) -> The account password.
+- `name` (string, optional) -> The administrator name.
+
+##### Routes
+
+###### `POST /account/register`
+
+Registers the first user as the system administrator. Subsequent calls will fail since only exactly one account can be registered.
+
+- **Auth Requirement**: Public
+- **Request Body**:
+
+  ```json
+  {
+    "email": "admin@example.com",
+    "password": "securepassword123",
+    "name": "Admin User"
+  }
+  ```
+
+- **Response (201 Created)**:
+
+  ```json
+  {
+    "id": 1,
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "admin",
+    "createdAt": "2026-08-14T05:30:00.000Z",
+    "updatedAt": "2026-08-14T05:30:00.000Z",
+    "image": {
+      "id": 1,
+      "tiny": "http://localhost:3000/shared/me/me-tiny.webp",
+      "medium": "http://localhost:3000/shared/me/me-medium.webp",
+      "raw": "http://localhost:3000/shared/me/me-raw.webp",
+      "userId": 1,
+      "createdAt": "2026-08-14T05:30:00.000Z",
+      "updatedAt": "2026-08-14T05:30:00.000Z"
+    },
+    "personalInfo": null
+  }
+  ```
+
+- **Error Response (400 Bad Request)**:
+  If a user has already been registered in the database, the server returns the custom `NO_MORE_USER_ACCEPTED_EXCEPTION`:
+
+  ```json
+  {
+    "statusCode": "400",
+    "exceptionName": "NO_MORE_USER_ACCEPTED_EXCEPTION",
+    "message": "Registration is disabled because an account already exists",
+    "path": "/account/register",
+    "date": "2026-08-14T05:31:00.000Z"
+  }
+  ```
+
+---
+
+#### Authenticated User Profile
+
+##### DTO Models
+
+No request DTOs required.
+
+##### Routes
+
+###### `GET /account/me`
+
+Retrieves the currently logged-in user profile, including personal details and profile images.
+
+- **Auth Requirement**: `ApiAuthGuard`
+- **Response (200 OK)**:
+
+  ```json
+  {
+    "id": 1,
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "admin",
+    "createdAt": "2026-08-14T05:30:00.000Z",
+    "updatedAt": "2026-08-14T05:30:00.000Z",
+    "image": {
+      "id": 1,
+      "tiny": "http://localhost:3000/shared/me/me-tiny.webp",
+      "medium": "http://localhost:3000/shared/me/me-medium.webp",
+      "raw": "http://localhost:3000/shared/me/me-raw.webp",
+      "userId": 1,
+      "createdAt": "2026-08-14T05:30:00.000Z",
+      "updatedAt": "2026-08-14T05:30:00.000Z"
+    },
+    "personalInfo": {
+      "id": 1,
+      "professionalTitle": "Senior Fullstack Developer",
+      "bio": "I build scalable web applications.",
+      "experience": 5,
+      "focus": "Backend & Cloud Architectures",
+      "languages": "TypeScript, Go, Rust",
+      "coverImage": "http://localhost:3000/shared/me/cover.webp",
+      "userId": 1,
+      "createdAt": "2026-08-14T05:35:00.000Z",
+      "updatedAt": "2026-08-14T05:35:00.000Z"
+    }
+  }
+  ```
+
+---
+
 ### 🎨 Settings (`/settings`)
 
 #### Themes
