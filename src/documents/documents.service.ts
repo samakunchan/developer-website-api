@@ -27,9 +27,15 @@ export class DocumentsService implements OnModuleInit {
 
   private getPublicUrl(objectName: string): string {
     const endpoint = process.env.S3_PUBLIC_ENDPOINT || 'web.garage.localhost';
-    const port = process.env.S3_PUBLIC_PORT || '3902';
-    const protocol = process.env.S3_USE_SSL === 'true' ? 'https' : 'http';
-    return `${protocol}://${this.bucketName}.${endpoint}:${port}/${objectName}`;
+    const port = process.env.S3_PUBLIC_PORT;
+    const useSSL =
+      process.env.S3_PUBLIC_USE_SSL !== undefined ? process.env.S3_PUBLIC_USE_SSL === 'true' : process.env.S3_USE_SSL === 'true';
+    const protocol = useSSL ? 'https' : 'http';
+
+    if (port && port !== '80' && port !== '443') {
+      return `${protocol}://${this.bucketName}.${endpoint}:${port}/${objectName}`;
+    }
+    return `${protocol}://${this.bucketName}.${endpoint}/${objectName}`;
   }
 
   async onModuleInit() {
