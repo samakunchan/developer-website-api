@@ -21,6 +21,11 @@ if [ -f ".env" ]; then
     if [ -z "$BAO_SECRET_ID" ]; then
         BAO_SECRET_ID=$(grep -E "^BAO_SECRET_ID=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
+    # Override BAO_PATH if it is set in .env
+    ENV_BAO_PATH=$(grep -E "^BAO_PATH=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
+    if [ -n "$ENV_BAO_PATH" ]; then
+        BAO_PATH="$ENV_BAO_PATH"
+    fi
     if [ -z "$BAO_ADDR_STAGE_PROD" ]; then
         BAO_ADDR_STAGE_PROD=$(grep -E "^BAO_ADDR_STAGE_PROD=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
@@ -62,7 +67,28 @@ if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
   return 1 2>/dev/null || exit 1
 fi
 
-SECRETS_JSON=$(curl -s -H "X-Vault-Token: $TOKEN" "$BAO_ADDR/v1/$BAO_PATH")
+# 3. Fetch Secrets
+SECRETS_JSON_RES=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "X-Vault-Token: $TOKEN" "$BAO_ADDR/v1/$BAO_PATH")
+
+HTTP_STATUS=$(echo "$SECRETS_JSON_RES" | grep "HTTP_STATUS" | cut -d':' -f2)
+SECRETS_JSON=$(echo "$SECRETS_JSON_RES" | grep -v "HTTP_STATUS")
+
+if [ "$HTTP_STATUS" -ne 200 ]; then
+  echo "❌ Error: Failed to fetch secrets from OpenBao."
+  echo "   Address: $BAO_ADDR"
+  echo "   Path: $BAO_PATH"
+  echo "   HTTP Status: $HTTP_STATUS"
+  echo "   Response: $SECRETS_JSON"
+  return 1 2>/dev/null || exit 1
+fi
+
+# Validate jq output
+JQ_TEST=$(echo "$SECRETS_JSON" | jq -r '.data.data' 2>/dev/null)
+if [ "$JQ_TEST" = "null" ] || [ -z "$JQ_TEST" ]; then
+  echo "❌ Error: Invalid response format from OpenBao or path does not exist."
+  echo "   Response: $SECRETS_JSON"
+  return 1 2>/dev/null || exit 1
+fi
 
 # Export all secrets to current shell
 eval $(echo $SECRETS_JSON | jq -r '.data.data | to_entries | .[] | "export \(.key)=\"\(.value)\""')
