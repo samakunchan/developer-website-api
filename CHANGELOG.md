@@ -1,6 +1,30 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.11.0 - 14/08/2026
+
+### Added
+
+- **Account Module**:
+  - Implemented `AccountModule`, `AccountController`, and `AccountService` to support admin profile management.
+  - Added public registration endpoint `POST /account/register` to register the first system administrator (role: `admin`). Subsequent registrations are locked out.
+  - Added authenticated session endpoint `GET /account/me` (protected by `ApiAuthGuard`) to fetch the current user's profile, including profile image and personal information.
+  - Added `NoMoreUserAcceptedException` custom exception which returns a clean mapping of `NO_MORE_USER_ACCEPTED_EXCEPTION` to block additional signups.
+- **Endpoint Documentation**:
+  - Updated `DOCUMENTATION.md` to document the new `Account` endpoints, schemas, DTO models, and error responses.
+
+### Changed
+
+- **Global Exception Filter**:
+  - Updated `AllExceptionsFilter` to intercept and cleanly format the `NoMoreUserAcceptedException` as `NO_MORE_USER_ACCEPTED_EXCEPTION`.
+  - Fixed standard `prisma.user.findUnique()` error string matching in `AllExceptionsFilter` to correctly return `UserNotFoundException` on missing database resources.
+
+### Fixed
+
+- N/A
+
+----
+
 ## 🚀 0.10.0 - 14/08/2026
 
 ### Added
