@@ -11,7 +11,7 @@ ENV=${1:-dev}
 # 1. Configuration (Bootstrap)
 BAO_ROLE_ID=""
 BAO_SECRET_ID=""
-BAO_PATH="secret/data/developer-website"
+BAO_PATH=""
 
 # If BAO_ROLE_ID or BAO_SECRET_ID are not set, try to load them from .env
 if [ -f ".env" ]; then
