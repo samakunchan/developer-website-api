@@ -31,7 +31,7 @@ export class DocumentsService implements OnModuleInit {
     const useSSL =
       process.env.S3_PUBLIC_USE_SSL !== undefined ? process.env.S3_PUBLIC_USE_SSL === 'true' : process.env.S3_USE_SSL === 'true';
     const protocol = useSSL ? 'https' : 'http';
-    const isPathStyle = process.env.S3_PUBLIC_PATH_STYLE === 'true';
+    const isPathStyle = endpoint !== 'web.garage.localhost' && !endpoint.endsWith('.localhost');
 
     const portSuffix = port && port !== '80' && port !== '443' ? `:${port}` : '';
 
