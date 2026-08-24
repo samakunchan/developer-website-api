@@ -13,23 +13,21 @@ BAO_ROLE_ID=""
 BAO_SECRET_ID=""
 BAO_PATH=""
 
-# If BAO_ROLE_ID or BAO_SECRET_ID are not set, try to load them from .env
+# Load configurations from .env if present (only overrides if the variable is defined in .env to protect production env vars)
 if [ -f ".env" ]; then
-    if [ -z "$BAO_ROLE_ID" ]; then
+    if grep -qE "^BAO_ROLE_ID=" .env; then
         BAO_ROLE_ID=$(grep -E "^BAO_ROLE_ID=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
-    if [ -z "$BAO_SECRET_ID" ]; then
+    if grep -qE "^BAO_SECRET_ID=" .env; then
         BAO_SECRET_ID=$(grep -E "^BAO_SECRET_ID=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
-    # Override BAO_PATH if it is set in .env
-    ENV_BAO_PATH=$(grep -E "^BAO_PATH=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
-    if [ -n "$ENV_BAO_PATH" ]; then
-        BAO_PATH="$ENV_BAO_PATH"
+    if grep -qE "^BAO_PATH=" .env; then
+        BAO_PATH=$(grep -E "^BAO_PATH=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
-    if [ -z "$BAO_ADDR_STAGE_PROD" ]; then
+    if grep -qE "^BAO_ADDR_STAGE_PROD=" .env; then
         BAO_ADDR_STAGE_PROD=$(grep -E "^BAO_ADDR_STAGE_PROD=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
-    if [ -z "$BAO_ADDR" ]; then
+    if grep -qE "^BAO_ADDR=" .env; then
         BAO_ADDR=$(grep -E "^BAO_ADDR=" .env | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
     fi
 fi
