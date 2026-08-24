@@ -31,11 +31,14 @@ export class DocumentsService implements OnModuleInit {
     const useSSL =
       process.env.S3_PUBLIC_USE_SSL !== undefined ? process.env.S3_PUBLIC_USE_SSL === 'true' : process.env.S3_USE_SSL === 'true';
     const protocol = useSSL ? 'https' : 'http';
+    const isPathStyle = process.env.S3_PUBLIC_PATH_STYLE === 'true';
 
-    if (port && port !== '80' && port !== '443') {
-      return `${protocol}://${this.bucketName}.${endpoint}:${port}/${objectName}`;
+    const portSuffix = port && port !== '80' && port !== '443' ? `:${port}` : '';
+
+    if (isPathStyle) {
+      return `${protocol}://${endpoint}${portSuffix}/${this.bucketName}/${objectName}`;
     }
-    return `${protocol}://${this.bucketName}.${endpoint}/${objectName}`;
+    return `${protocol}://${this.bucketName}.${endpoint}${portSuffix}/${objectName}`;
   }
 
   async onModuleInit() {
