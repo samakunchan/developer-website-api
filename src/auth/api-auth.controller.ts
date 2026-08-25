@@ -6,7 +6,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ApiAuthGuard } from './api-auth.guard';
 
-@Controller('auth/api')
+@Controller('auth')
 export class ApiAuthController {
   constructor(private readonly apiAuthService: ApiAuthService) {}
 

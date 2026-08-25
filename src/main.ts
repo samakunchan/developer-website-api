@@ -20,6 +20,8 @@ async function bootstrap() {
     logger: ['log', 'error', 'warn'],
   });
 
+  app.setGlobalPrefix('samapi');
+
   // Serve static uploads
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
