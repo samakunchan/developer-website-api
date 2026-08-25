@@ -9,7 +9,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MINUTES = 15;
+const LOCKOUT_DURATION_MINUTES = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 15 : 1;
 
 @Injectable()
 export class ApiAuthService {
@@ -19,6 +19,9 @@ export class ApiAuthService {
     return new TextEncoder().encode(process.env.SESSION_SECRET || 'a-very-long-and-secure-secret-key-for-development-only');
   }
 
+  /**
+   * @deprecated I'm not using this anymore. Env variables are not used.
+   */
   private getAppUrl(): string {
     if (process.env.APP_URL_STAGING) {
       return process.env.APP_URL_STAGING;

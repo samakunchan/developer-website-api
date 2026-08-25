@@ -6,7 +6,7 @@ Welcome to the API documentation for the **Developer Website API**. This is a Ne
 
 ## 🚀 General Configuration
 
-- **Local Base URL**: `http://localhost:3002` (or the value of the `REPLACED_PORT` / `PORT` environment variables)
+- **Local Base URL**: `http://localhost:3002/api` (all routes are prefixed by `/api` globally)
 - **Static Assets Directory**: `/uploads` is exposed to serve uploaded images (e.g., `http://localhost:3002/uploads/me/...`)
 - **Garage S3 Storage**: Used for documents management. In development, S3 API runs on `http://localhost:3900` (handled by backend client via `host.docker.internal` inside Docker), and S3 Web public access runs on `http://papanguesoft.web.garage.localhost:3902`.
 - **Global Validation**: Standard DTO validation is active. Invalid requests return detailed `400 Bad Request` messages containing constraint failures.
@@ -15,23 +15,14 @@ Welcome to the API documentation for the **Developer Website API**. This is a Ne
 
 ## 🔒 Authentication & Authorization
 
-The API supports two authentication flows, controlled by different guards:
+The API supports the following authentication flow:
 
 ### 1. API Token Flow (`ApiAuthGuard`)
-
-Mainly used for external API consumers.
 
 - **Header format**: `Authorization: Bearer <token>`
 - Token is verified against the database. If missing or invalid, it throws `410 UnauthorizedException`.
 
-### 2. Web Session Flow (`WebAuthGuard`)
-
-Mainly used for the companion front-end website.
-
-- **Cookie-based**: Looks for the `auth_session` cookie (HttpOnly, Secure in production).
-- **Header Fallback**: If the cookie is not present, falls back to check the `Authorization: Bearer <token>` header.
-
-### 3. Role-Based Access Control (`AdminGuard`)
+### 2. Role-Based Access Control (`AdminGuard`)
 
 - Some endpoints require the user to have the `admin` role (i.e. `user.role === 'admin'`).
 - If an authenticated user doesn't have the `admin` role, the server returns a `403 ForbiddenException` with the message `"Only admins are allowed to perform this action"`.
@@ -69,7 +60,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `GET /`
+###### `GET /api`
 
 Retrieves information about the current API version and environment.
 
@@ -88,9 +79,9 @@ Retrieves information about the current API version and environment.
 
 ---
 
-### 🔑 Authentication (`auth/api` & `auth/web`)
+### 🔑 Authentication (/samapi/auth)
 
-Both authentication sub-modules share similar DTOs but differ in session management (tokens vs cookies).
+Handles sign-in, sign-out, session retrieval, and password reset functionalities.
 
 #### Sign In
 
@@ -101,7 +92,7 @@ Both authentication sub-modules share similar DTOs but differ in session managem
 
 ##### Routes
 
-###### `POST /auth/api/sign-in`
+###### `POST /samapi/auth/sign-in`
 
 Signs in a user and returns an API access token.
 
@@ -140,7 +131,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `POST /auth/api/sign-out`
+###### `POST /samapi/auth/sign-out`
 
 Revokes the current API session token.
 
@@ -153,22 +144,6 @@ Revokes the current API session token.
   }
   ```
 
-###### `POST /auth/web/sign-out`
-
-Clears the `auth_session` cookie and invalidates the session.
-
-- **Auth Requirement**: `WebAuthGuard`
-- **Cookie Cleared**: `auth_session=; Path=/; Max-Age=0`
-- **Response (200 OK)**:
-
-  ```json
-  {
-    "success": true
-  }
-  ```
-
----
-
 #### User Session
 
 ##### DTO Models
@@ -177,7 +152,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `GET /auth/api/session`
+###### `GET /samapi/auth/session`
 
 Returns the currently authenticated user's profile details.
 
@@ -195,26 +170,6 @@ Returns the currently authenticated user's profile details.
   }
   ```
 
-###### `GET /auth/web/session`
-
-Returns the current session user details.
-
-- **Auth Requirement**: `WebAuthGuard`
-- **Response (200 OK)**:
-
-  ```json
-  {
-    "user": {
-      "id": 1,
-      "name": "Samakunchan",
-      "email": "contact@samakunchan-technology.com",
-      "role": "admin"
-    }
-  }
-  ```
-
----
-
 #### Forgot Password
 
 ##### DTO Models
@@ -223,7 +178,7 @@ Returns the current session user details.
 
 ##### Routes
 
-###### `POST /auth/api/forgot-password`
+###### `POST /samapi/auth/forgot-password`
 
 Sends a password reset link to the email specified.
 
@@ -257,7 +212,7 @@ Sends a password reset link to the email specified.
 
 ##### Routes
 
-###### `POST /auth/api/reset-password`
+###### `POST /samapi/auth/reset-password`
 
 Resets the password using a reset token.
 
@@ -297,7 +252,7 @@ The account sub-module handles registration of the primary administrator account
 
 ##### Routes
 
-###### `POST /account/register`
+###### `POST /samapi/account/register`
 
 Registers the first user as the system administrator. Subsequent calls will fail since only exactly one account can be registered.
 
@@ -358,7 +313,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `GET /account/me`
+###### `GET /samapi/account/me`
 
 Retrieves the currently logged-in user profile, including personal details and profile images.
 
@@ -409,7 +364,7 @@ Retrieves the currently logged-in user profile, including personal details and p
 
 ##### Routes
 
-###### `GET /settings/theme`
+###### `GET /samapi/settings/theme`
 
 Gets the current active layout theme for the client application.
 
@@ -422,7 +377,7 @@ Gets the current active layout theme for the client application.
   }
   ```
 
-###### `PUT /settings/theme`
+###### `PUT /samapi/settings/theme`
 
 Updates the default application theme.
 
@@ -477,7 +432,7 @@ Updates the default application theme.
 
 ##### Routes
 
-###### `GET /settings/legal-mentions`
+###### `GET /samapi/settings/legal-mentions`
 
 Gets the Legal Mentions rich-text document.
 
@@ -494,7 +449,7 @@ Gets the Legal Mentions rich-text document.
   }
   ```
 
-###### `PUT /settings/legal-mentions`
+###### `PUT /samapi/settings/legal-mentions`
 
 Updates/Upserts the Legal Mentions rich-text document.
 
@@ -523,7 +478,7 @@ Updates/Upserts the Legal Mentions rich-text document.
 
 ##### Routes
 
-###### `GET /settings/cgu`
+###### `GET /samapi/settings/cgu`
 
 Gets the CGU (Terms & Conditions) rich-text document.
 
@@ -540,7 +495,7 @@ Gets the CGU (Terms & Conditions) rich-text document.
   }
   ```
 
-###### `PUT /settings/cgu`
+###### `PUT /samapi/settings/cgu`
 
 Updates/Upserts the CGU rich-text document.
 
@@ -569,7 +524,7 @@ Updates/Upserts the CGU rich-text document.
 
 ##### Routes
 
-###### `GET /settings/privacy-policy`
+###### `GET /samapi/settings/privacy-policy`
 
 Gets the Privacy Policy rich-text document.
 
@@ -586,7 +541,7 @@ Gets the Privacy Policy rich-text document.
   }
   ```
 
-###### `PUT /settings/privacy-policy`
+###### `PUT /samapi/settings/privacy-policy`
 
 Updates/Upserts the Privacy Policy rich-text document.
 
@@ -615,7 +570,7 @@ Updates/Upserts the Privacy Policy rich-text document.
 
 ##### Routes
 
-###### `GET /settings/cookie-policy`
+###### `GET /samapi/settings/cookie-policy`
 
 Gets the Cookie Policy rich-text document.
 
@@ -632,7 +587,7 @@ Gets the Cookie Policy rich-text document.
   }
   ```
 
-###### `PUT /settings/cookie-policy`
+###### `PUT /samapi/settings/cookie-policy`
 
 Updates/Upserts the Cookie Policy rich-text document.
 
@@ -663,7 +618,7 @@ No request payload; returns the complete Profile response.
 
 ##### Routes
 
-###### `GET /profiles/presentation`
+###### `GET /samapi/profiles/presentation`
 
 Public profile information formatted for portfolio rendering. Fetches details for the user associated with `ADMIN_EMAIL`.
 
@@ -724,7 +679,7 @@ Public profile information formatted for portfolio rendering. Fetches details fo
   }
   ```
 
-###### `GET /profiles`
+###### `GET /samapi/profiles`
 
 Gets the profile information of the currently authenticated admin user.
 
@@ -747,7 +702,7 @@ Gets the profile information of the currently authenticated admin user.
 
 ##### Routes
 
-###### `PUT /profiles/personal-info`
+###### `PUT /samapi/profiles/personal-info`
 
 Updates biography details, Professional title, and overall personal meta.
 
@@ -784,7 +739,7 @@ Updates biography details, Professional title, and overall personal meta.
 
 ##### Routes
 
-###### `POST /profiles/tech-stack`
+###### `POST /samapi/profiles/tech-stack`
 
 Adds a technology item to the admin's tech stack.
 
@@ -811,7 +766,7 @@ Adds a technology item to the admin's tech stack.
   }
   ```
 
-###### `DELETE /profiles/tech-stack/:id`
+###### `DELETE /samapi/profiles/tech-stack/:id`
 
 Deletes a tech stack entry.
 
@@ -838,7 +793,7 @@ Deletes a tech stack entry.
 
 ##### Routes
 
-###### `POST /profiles/social-link`
+###### `POST /samapi/profiles/social-link`
 
 Adds a social/profile link.
 
@@ -869,7 +824,7 @@ Adds a social/profile link.
   }
   ```
 
-###### `DELETE /profiles/social-link/:id`
+###### `DELETE /samapi/profiles/social-link/:id`
 
 Deletes a social link.
 
@@ -893,7 +848,7 @@ Uses standard `multipart/form-data` with binary payload.
 
 ##### Routes
 
-###### `POST /profiles/avatar`
+###### `POST /samapi/profiles/avatar`
 
 Uploads a profile picture, resizes it automatically to 3 sizes (tiny 32x32 WebP, medium 80x80 WebP, raw optimised WebP), and saves it to Garage S3.
 
@@ -928,7 +883,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `GET /projects`
+###### `GET /samapi/projects`
 
 Fetches all projects ordered by creation date descending.
 
@@ -969,7 +924,7 @@ Fetches all projects ordered by creation date descending.
   ]
   ```
 
-###### `GET /projects/status/:status`
+###### `GET /samapi/projects/status/:status`
 
 Fetches projects filtered by status (`draft`, `published`, `unpublished`, `archived`), ordered by creation date descending.
 
@@ -978,7 +933,7 @@ Fetches projects filtered by status (`draft`, `published`, `unpublished`, `archi
 - **Response (200 OK)**:
   *(Returns an array of Project objects matching the status)*
 
-###### `GET /projects/:id`
+###### `GET /samapi/projects/:id`
 
 Retrieves a project details by ID.
 
@@ -987,7 +942,7 @@ Retrieves a project details by ID.
 - **Response (200 OK)**:
   *(Same structure as single project object in list)*
 
-###### `GET /projects/slug/:slug`
+###### `GET /samapi/projects/slug/:slug`
 
 Retrieves project details using its unique SEO slug.
 
@@ -1019,7 +974,7 @@ Retrieves project details using its unique SEO slug.
 
 ##### Routes
 
-###### `POST /projects`
+###### `POST /samapi/projects`
 
 Creates a new project.
 
@@ -1066,7 +1021,7 @@ Creates a new project.
 
 ##### Routes
 
-###### `PUT /projects/:id`
+###### `PUT /samapi/projects/:id`
 
 Updates a project fields.
 
@@ -1087,7 +1042,7 @@ Updates a project fields.
 - **Response (200 OK)**:
   *(Returns the updated Project object)*
 
-###### `PATCH /projects/:id/featured`
+###### `PATCH /samapi/projects/:id/featured`
 
 Toggles the `isFeatured` boolean status of a project.
 
@@ -1096,7 +1051,7 @@ Toggles the `isFeatured` boolean status of a project.
 - **Response (200 OK)**:
   *(Returns the updated Project object complete with relations, including image)*
 
-###### `DELETE /projects/:id`
+###### `DELETE /samapi/projects/:id`
 
 Deletes a project and its associated image files from storage.
 
@@ -1123,7 +1078,7 @@ Uses standard `multipart/form-data` with binary payload.
 
 ##### Routes
 
-###### `POST /projects/upload`
+###### `POST /samapi/projects/upload`
 
 Uploads a showcase banner image, resizes it (medium size 1200x800, raw optimized), saves it to Garage S3 and returns the S3 urls. Subsequent uploads with the same `identifier` overwrite the existing file on S3 instead of creating duplicates.
 
@@ -1171,7 +1126,7 @@ Manages client contact message submissions.
 
 ##### Routes
 
-###### `GET /messages`
+###### `GET /samapi/messages`
 
 Gets a list of paginated and filtered contact messages.
 
@@ -1210,7 +1165,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `GET /messages/unread-count`
+###### `GET /samapi/messages/unread-count`
 
 Retrieves the total count of unread messages.
 
@@ -1233,7 +1188,7 @@ Retrieves the total count of unread messages.
 
 ##### Routes
 
-###### `PATCH /messages/:id/read`
+###### `PATCH /samapi/messages/:id/read`
 
 Marks a message read status.
 
@@ -1282,7 +1237,7 @@ Multipart Form Data:
 
 ##### Routes
 
-###### `POST /documents/upload`
+###### `POST /samapi/documents/upload`
 
 Uploads a document file to the Garage S3 storage bucket.
 
@@ -1309,7 +1264,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `GET /documents`
+###### `GET /samapi/documents`
 
 Retrieves a list of all documents stored in the S3 bucket, sorted by their last modified date in descending order.
 
@@ -1337,7 +1292,7 @@ No request DTOs required.
 
 ##### Routes
 
-###### `DELETE /documents/:name`
+###### `DELETE /samapi/documents/:name`
 
 Deletes a specific document from the Garage S3 storage by its unique object name.
 

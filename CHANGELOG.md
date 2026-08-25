@@ -1,6 +1,30 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.12.0 - 25/08/2026
+
+### Added
+
+- N/A
+
+### Changed
+
+- **Global Route Prefix**:
+  - Configured a global route prefix `samapi` in `main.ts`, moving all API routes under `/samapi/...`.
+- **Authentication & Authorization**:
+  - Removed Web Auth module entirely, including `WebAuthController`, `WebAuthService`, and `WebAuthGuard` along with their unit test files.
+  - Re-routed the remaining API token authentication endpoints under `/samapi/auth` (by changing the controller path from `auth/api` to `auth`).
+  - Configured `LOCKOUT_DURATION_MINUTES` in `ApiAuthService` to dynamically use `1` minute in development mode and `15` minutes in staging/production environments.
+- **Endpoint Documentation**:
+  - Refactored `DOCUMENTATION.md` to prefix all endpoint paths with `/samapi/...` globally.
+  - Removed all documented Web Auth session routes (`POST /auth/web/sign-out` and `GET /auth/web/session`).
+
+### Fixed
+
+- N/A
+
+----
+
 ## 🚀 0.11.0 - 14/08/2026
 
 ### Added
