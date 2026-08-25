@@ -9,7 +9,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MINUTES = 15;
+const LOCKOUT_DURATION_MINUTES = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 15 : 1;
 
 @Injectable()
 export class ApiAuthService {
