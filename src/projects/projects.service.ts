@@ -192,22 +192,31 @@ export class ProjectsService {
         });
       }
     } else if (image) {
-      // Clean up previous files if any exist
-      if (existing.image) {
-        await this.cleanupFiles(existing.image);
+      const existingMedium = existing.image?.medium as any;
+      const existingRaw = existing.image?.raw as any;
+
+      const isUrlSame = existing.image && existingMedium?.url === image.medium.url && existingRaw?.url === image.raw.url;
+
+      const isSameImage = isUrlSame && existingMedium?.alt === image.medium.alt && existingRaw?.alt === image.raw.alt;
+
+      if (!isSameImage) {
+        // Only clean up previous files if the URL has actually changed!
+        if (existing.image && !isUrlSame) {
+          await this.cleanupFiles(existing.image);
+        }
+        imageUpdateAction = {
+          upsert: {
+            create: {
+              medium: image.medium as any,
+              raw: image.raw as any,
+            },
+            update: {
+              medium: image.medium as any,
+              raw: image.raw as any,
+            },
+          },
+        };
       }
-      imageUpdateAction = {
-        upsert: {
-          create: {
-            medium: image.medium as any,
-            raw: image.raw as any,
-          },
-          update: {
-            medium: image.medium as any,
-            raw: image.raw as any,
-          },
-        },
-      };
     }
 
     return await this.prisma.project.update({
