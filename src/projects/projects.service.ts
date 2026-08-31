@@ -7,6 +7,7 @@ import * as sharp from 'sharp';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import { DocumentsService } from '../documents/documents.service';
+import { url } from 'inspector';
 
 @Injectable()
 export class ProjectsService {
@@ -84,7 +85,7 @@ export class ProjectsService {
    */
   async getProjects() {
     return await this.prisma.project.findMany({
-      include: { image: true },
+      include: { image: true, projectUrl: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -95,7 +96,7 @@ export class ProjectsService {
   async getProjectsByStatus(status: ProjectStatus) {
     return await this.prisma.project.findMany({
       where: { status },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -106,7 +107,7 @@ export class ProjectsService {
   async getProjectById(id: number) {
     const project = await this.prisma.project.findUnique({
       where: { id },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -120,7 +121,7 @@ export class ProjectsService {
   async getProjectBySlug(slug: string) {
     const project = await this.prisma.project.findUnique({
       where: { slug },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
     if (!project) {
       throw new NotFoundException(`Project with slug "${slug}" not found`);
@@ -132,7 +133,7 @@ export class ProjectsService {
    * Creates a new project
    */
   async createProject(userId: number, dto: CreateProjectDto) {
-    const { image, ...projectData } = dto;
+    const { image, projectUrl, ...projectData } = dto;
 
     return await this.prisma.project.create({
       data: {
@@ -150,8 +151,16 @@ export class ProjectsService {
               },
             }
           : undefined,
+        projectUrl:
+          projectUrl != null && projectUrl.url
+            ? {
+                create: {
+                  url: projectUrl.url as any,
+                },
+              }
+            : undefined,
       },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
   }
 
@@ -161,7 +170,7 @@ export class ProjectsService {
   async updateProject(id: number, dto: UpdateProjectDto) {
     const existing = await this.prisma.project.findUnique({
       where: { id },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
     if (!existing) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -182,6 +191,7 @@ export class ProjectsService {
 
     // Handle image cleanup and updates
     let imageUpdateAction: any = undefined;
+    let projectUrlUpdateAction: any = undefined;
 
     if (image === null) {
       // Explicit deletion of the image
@@ -195,9 +205,11 @@ export class ProjectsService {
       const existingMedium = existing.image?.medium as any;
       const existingRaw = existing.image?.raw as any;
 
-      const isUrlSame = existing.image && existingMedium?.url === image.medium.url && existingRaw?.url === image.raw.url;
+      const isUrlSame: boolean | null =
+        existing.image && existingMedium?.url === image.medium.url && existingRaw?.url === image.raw.url;
 
-      const isSameImage = isUrlSame && existingMedium?.alt === image.medium.alt && existingRaw?.alt === image.raw.alt;
+      const isSameImage: boolean | null =
+        isUrlSame && existingMedium?.alt === image.medium.alt && existingRaw?.alt === image.raw.alt;
 
       if (!isSameImage) {
         // Only clean up previous files if the URL has actually changed!
@@ -218,6 +230,18 @@ export class ProjectsService {
         };
       }
     }
+    if (projectData.projectUrl != null) {
+      projectUrlUpdateAction = {
+        upsert: {
+          create: {
+            url: projectData.projectUrl.url as any,
+          },
+          update: {
+            url: projectData.projectUrl.url as any,
+          },
+        },
+      };
+    }
 
     return await this.prisma.project.update({
       where: { id },
@@ -226,8 +250,9 @@ export class ProjectsService {
         techStack: projectData.techStack ? (projectData.techStack as any) : undefined,
         features: projectData.features ? (projectData.features as any) : undefined,
         image: imageUpdateAction,
+        projectUrl: projectUrlUpdateAction,
       },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
   }
 
@@ -237,7 +262,7 @@ export class ProjectsService {
   async deleteProject(id: number) {
     const project = await this.prisma.project.findUnique({
       where: { id },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -268,7 +293,7 @@ export class ProjectsService {
     return await this.prisma.project.update({
       where: { id },
       data: { isFeatured: !project.isFeatured },
-      include: { image: true },
+      include: { image: true, projectUrl: true },
     });
   }
 
