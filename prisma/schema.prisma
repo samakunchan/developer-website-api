@@ -183,10 +183,17 @@ model ProjectImage {
 model ProjectUrl {
   id        Int     @id @default(autoincrement())
   url       String
+  isActive  Boolean @default(false)
+  mode      UrlMode @default(finalResult)
   projectId Int     @unique
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("project_url")
+}
+
+enum UrlMode {
+  demo
+  finalResult
 }
 
 enum Role {
