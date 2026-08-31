@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsBoolean, IsEnum, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProjectCategory, ProjectStatus } from '@prisma/client';
-import { ProjectImageDto, TechStackItemDto, FeatureItemDto, ProjectUrlDto } from './create-project.dto';
+import { ProjectImageDto, TechStackItemDto, FeatureItemDto, ProjectUrlDto } from './generale.dto';
 
 export class UpdateProjectDto {
   @IsString()
