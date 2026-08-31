@@ -1,50 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsEnum, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProjectCategory, ProjectStatus } from '@prisma/client';
-
-export class ImageDetailDto {
-  @IsString()
-  @IsNotEmpty()
-  url: string;
-
-  @IsString()
-  @IsOptional()
-  alt?: string;
-}
-
-export class ProjectImageDto {
-  @ValidateNested()
-  @Type(() => ImageDetailDto)
-  medium: ImageDetailDto;
-
-  @ValidateNested()
-  @Type(() => ImageDetailDto)
-  raw: ImageDetailDto;
-}
-
-export class ProjectUrlDto {
-  @IsString()
-  url: string;
-}
-
-export class TechStackItemDto {
-  @IsString()
-  name: string;
-
-  @IsString()
-  icon: string;
-}
-
-export class FeatureItemDto {
-  @IsString()
-  icon: string;
-
-  @IsString()
-  title: string;
-
-  @IsString()
-  description: string;
-}
+import { TechStackItemDto, FeatureItemDto, ProjectImageDto, ProjectUrlDto } from './generale.dto';
 
 export class CreateProjectDto {
   @IsString()
