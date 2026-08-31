@@ -1,6 +1,24 @@
 # CHANGELOG developer-website-api
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+## 🚀 0.13.0 - 31/08/2026
+
+### Added
+
+- N/A
+
+### Changed
+
+- **Projects**:
+  - Update schema and add project url.
+  - Update projects dtos and projects service.
+
+### Fixed
+
+- N/A
+
+----
+
 ## 🚀 0.12.0 - 25/08/2026
 
 ### Added

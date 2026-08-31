@@ -18,7 +18,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.toString();
       status = exception.getStatus();
       const responseContent = exception.getResponse();
-      console.log(responseContent);
 
       const constructorName = exception.constructor.name;
       if (constructorName === 'ThemeNotFoundException') {
@@ -48,7 +47,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
       stack = exception.stack || '';
     } else if (exception instanceof Error) {
-      console.log(exception);
       let customMessage = 'CUSTOM_MESSAGE_EXCEPTION';
       if (exception.message.includes('prisma.user.findUnique()')) {
         customMessage = 'UserNotFoundException';
