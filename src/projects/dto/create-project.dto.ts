@@ -22,6 +22,11 @@ export class ProjectImageDto {
   raw: ImageDetailDto;
 }
 
+export class ProjectUrlDto {
+  @IsString()
+  url: string;
+}
+
 export class TechStackItemDto {
   @IsString()
   name: string;
@@ -53,11 +58,6 @@ export class CreateProjectDto {
   @IsString()
   @IsOptional()
   description?: string;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => ProjectImageDto)
-  image?: ProjectImageDto;
 
   @IsEnum(ProjectCategory)
   category: ProjectCategory;
@@ -91,4 +91,14 @@ export class CreateProjectDto {
   @IsEnum(ProjectStatus)
   @IsOptional()
   status?: ProjectStatus;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ProjectImageDto)
+  image?: ProjectImageDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ProjectUrlDto)
+  projectUrl?: ProjectUrlDto;
 }

@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsBoolean, IsEnum, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProjectCategory, ProjectStatus } from '@prisma/client';
-import { ProjectImageDto, TechStackItemDto, FeatureItemDto } from './create-project.dto';
+import { ProjectImageDto, TechStackItemDto, FeatureItemDto, ProjectUrlDto } from './create-project.dto';
 
 export class UpdateProjectDto {
   @IsString()
@@ -57,4 +57,8 @@ export class UpdateProjectDto {
   @IsEnum(ProjectStatus)
   @IsOptional()
   status?: ProjectStatus;
+
+  @IsOptional()
+  @Type(() => ProjectUrlDto)
+  projectUrl?: ProjectUrlDto | null;
 }
