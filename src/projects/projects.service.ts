@@ -156,6 +156,8 @@ export class ProjectsService {
             ? {
                 create: {
                   url: projectUrl.url as any,
+                  mode: projectUrl.mode as any,
+                  isActive: projectUrl.isActive as any,
                 },
               }
             : undefined,
@@ -235,9 +237,13 @@ export class ProjectsService {
         upsert: {
           create: {
             url: projectData.projectUrl.url as any,
+            mode: projectData.projectUrl.mode as any,
+            isActive: projectData.projectUrl.isActive as any,
           },
           update: {
             url: projectData.projectUrl.url as any,
+            mode: projectData.projectUrl.mode as any,
+            isActive: projectData.projectUrl.isActive as any,
           },
         },
       };
