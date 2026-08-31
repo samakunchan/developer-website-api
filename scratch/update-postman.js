@@ -226,6 +226,4 @@ const profilesFolder = {
 data.collection.item.push(profilesFolder);
 
 fs.writeFileSync(outputPath, JSON.stringify(data, null, 2), 'utf8');
-console.log(
-  'Successfully wrote updated collection JSON with IDs to ' + outputPath,
-);
+console.log('Successfully wrote updated collection JSON with IDs to ' + outputPath);
